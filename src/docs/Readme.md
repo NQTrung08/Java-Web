@@ -13,3 +13,5 @@
 6. util: Thư mục chứa các lớp tiện ích hỗ trợ như kết nối cơ sở dữ liệu, mã hóa (ví dụ: DatabaseConnection.java).
 
 7. exception: Thư mục chứa các lớp xử lý ngoại lệ (Exception Handling) đặc biệt cho dự án (ví dụ: StudentNotFoundException.java).
+
+### Chú ý: folder .idea không đc đẩy lên
