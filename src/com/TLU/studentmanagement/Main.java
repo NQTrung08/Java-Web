@@ -5,4 +5,7 @@ import com.TLU.studentmanagement.controller.RegisterController;
 import com.TLU.studentmanagement.util.ApiClient;
 
 public class Main {
+    public static void main(String[] args) {
+
+    }
 }
