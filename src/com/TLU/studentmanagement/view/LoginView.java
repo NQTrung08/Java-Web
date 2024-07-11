@@ -1,37 +1,47 @@
 package com.TLU.studentmanagement.view;
 
+import com.TLU.studentmanagement.controller.LoginController;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class LoginView extends JFrame {
     private JPanel panel;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
-    private JButton registerButton;
 
     public LoginView() {
-        setTitle("Đăng Nhập");
-        setSize(400, 300);
+        setTitle("Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 200); // Tăng kích thước cửa sổ để thoải mái hơn
         setLocationRelativeTo(null);
 
-        // Gọi phương thức để tạo các thành phần giao diện người dùng
+        // Khởi tạo các thành phần giao diện
         createUIComponents();
 
-        // Xử lý sự kiện nút Đăng Nhập
-
-
-        // Thêm panel vào cửa sổ chính
         add(panel);
+        setVisible(true);
     }
 
+    public String getUsername() {
+        return usernameField.getText();
+    }
+
+    public String getPassword() {
+        return new String(passwordField.getPassword());
+    }
+
+    public void addLoginListener(ActionListener loginListener) {
+        loginButton.addActionListener(loginListener);
+    }
+
+    // Phương thức createUIComponents để khởi tạo các thành phần tùy chỉnh
     private void createUIComponents() {
-        // Tạo các thành phần giao diện người dùng
         usernameField = new JTextField(20);
         passwordField = new JPasswordField(20);
         loginButton = new JButton("Đăng Nhập");
-        registerButton = new JButton("Đăng Ký");
 
         // Tạo bảng điều khiển và thêm các thành phần vào bảng
         panel = new JPanel();
@@ -60,20 +70,14 @@ public class LoginView extends JFrame {
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
         panel.add(loginButton, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        panel.add(registerButton, gbc);
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             LoginView loginView = new LoginView();
-            loginView.setVisible(true);
+            LoginController loginController = new LoginController(loginView);
         });
     }
 }
