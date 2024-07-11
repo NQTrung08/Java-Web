@@ -5,9 +5,12 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import net.miginfocom.swing.MigLayout;
 import main.java.com.TLU.studentmanagement.manager.FormsManager;
+import raven.toast.Notifications;
 
 public class Login extends JPanel {
 
@@ -57,6 +60,26 @@ public class Login extends JPanel {
         panel.add(cmdLogin, "gapy 10");
 //        panel.add(createSignupLabel(), "gapy 10");
         add(panel);
+
+        cmdLogin.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = txtUsername.getText();
+                String password = new String(txtPassword.getPassword());
+
+                if (username.equals("admin") && password.equals("password")) {
+                    // Show success notification
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "This is a success message.");
+
+                } else {
+                    // Show error notification
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Invalid username or password.");
+                }
+            }
+        });
+
+
+
     }
 
 //    private Component createSignupLabel() {
