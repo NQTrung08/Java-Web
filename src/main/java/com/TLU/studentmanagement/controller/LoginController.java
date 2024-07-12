@@ -1,5 +1,6 @@
 package main.java.com.TLU.studentmanagement.controller;
 
+import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import main.java.com.TLU.studentmanagement.view.login.Login;
@@ -10,6 +11,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import raven.toast.Notifications;
+
 
 public class LoginController {
     private Login loginView;
@@ -34,25 +38,42 @@ public class LoginController {
                 String response = HttpUtil.sendPost(apiUrl, jsonInput.toString());
                 JSONObject jsonResponse = new JSONObject(response);
 
-                // Kiểm tra sự tồn tại của accessToken để xác định đăng nhập thành công
-                if (jsonResponse.has("tokens") && jsonResponse.getJSONObject("tokens").has("accessToken")) {
+                if (jsonResponse.has("tokens")) {
+                    String accessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
+                    String refreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
+                    HttpUtil.setTokens(accessToken, refreshToken);
+
+
                     String userId = jsonResponse.getJSONObject("data").getJSONObject("user").getString("_id");
-                    String token = jsonResponse.getJSONObject("tokens").getString("accessToken");
-                    HttpUtil.setAdminToken(token);
+                    boolean isGV = jsonResponse.getJSONObject("data").getJSONObject("user").getBoolean("isGV");
+                    if (isGV) {
+                        Teacher teacher = fetchTeacherDetails(userId);
 
-                    User user = fetchUserDetails(userId);
-                    JOptionPane.showMessageDialog(null, "Login successful! Welcome " + user.getFullName());
+                        Notifications.getInstance().show(Notifications.Type.SUCCESS, "Login successful! Welcome " + teacher.getFullName());
 
-                    // Lưu thông tin người dùng
-                    saveUserDetails(user);
+                        System.out.println("Teacher Info: " + teacher.toString());
+
+
+//                        loginView.setVisible(false);
+//                        new Dashboard(teacher.getFullName());
+                    } else {
+                        User user = fetchUserDetails(userId);
+                        Notifications.getInstance().show(Notifications.Type.SUCCESS, "Login successful! Welcome " + user.getFullName());
+
+                        saveUserDetails(user);
+
+//                        loginView.setVisible(false);
+//                        new Dashboard(user.getFullName());
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(null, "Login failed: Missing token in response.");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Login failed: Missing token in response.");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         }
+
 
         private User fetchUserDetails(String userId) throws Exception {
             String apiUrl = "http://localhost:8080/api/user/" + userId;
@@ -63,12 +84,30 @@ public class LoginController {
             User user = new User();
             user.setId(userData.getString("_id"));
             user.setMsv(userData.getString("msv"));
-            user.setFullName(userData.getString("fullname"));
-            user.setEmail(userData.getString("email"));
+            user.setFullName(userData.optString("fullname", "Unknown"));
+            user.setEmail(userData.optString("email", "Unknown"));
             user.setAdmin(userData.getBoolean("isAdmin"));
 
             return user;
         }
+
+        private Teacher fetchTeacherDetails(String userId) throws Exception {
+            String apiUrl = "http://localhost:8080/api/teacher/" + userId;
+            String response = HttpUtil.sendGet(apiUrl);
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONObject teacherData = jsonResponse.getJSONObject("data");
+
+            Teacher teacher = new Teacher();
+            teacher.setId(teacherData.getString("_id"));
+            teacher.setMgv(teacherData.getString("mgv"));  // Đọc trường mgv từ API
+            teacher.setFullName(teacherData.optString("fullname", "Unknown"));  // Đọc trường fullname từ API
+            teacher.setEmail(teacherData.optString("email", "No Email"));  // Bạn có thể thêm trường email nếu cần
+            teacher.setGV(teacherData.getBoolean("isGV"));  // Đọc trường isGV từ API
+
+
+            return teacher;
+        }
+
 
         private void saveUserDetails(User user) {
             JSONObject userJson = new JSONObject();

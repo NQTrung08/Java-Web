@@ -96,11 +96,13 @@ public class AddStudentForm extends JFrame {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
 
                 // Lấy giá trị của thuộc tính "fullname" và "mgv"
+                String _id = jsonObject.getString("_id");
+
                 String fullName = jsonObject.getString("fullname");
                 String mgv = jsonObject.getString("mgv");
 
                 // Tạo đối tượng Teacher và thêm vào danh sách teacherList
-                teacherList.add(new Teacher(mgv, fullName));
+                teacherList.add(new Teacher(_id, mgv, fullName));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,6 +1,7 @@
 package main.java.com.TLU.studentmanagement.view;
 
 import main.java.com.TLU.studentmanagement.controller.LoginController;
+import main.java.com.TLU.studentmanagement.view.login.Login;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,9 +27,15 @@ public class Dashboard extends JFrame {
         logoutButton.addActionListener(e -> {
             int option = JOptionPane.showConfirmDialog(Dashboard.this, "Bạn có muốn đăng xuất không?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
-                // Đóng Dashboard và hiển thị lại màn hình đăng nhập
+                // Đóng Dashboard và hiển thị lại màn hình đăng nhậ
                 dispose();
-                new LoginController().setVisible(true);
+
+                // Tạo mới đối tượng Login
+                Login loginView = new Login();
+                // Khởi tạo LoginController với đối tượng Login
+                new LoginController(loginView);
+                // Hiển thị Login
+                loginView.setVisible(true);
             }
         });
         panel.add(logoutButton, BorderLayout.SOUTH);

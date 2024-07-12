@@ -1,145 +1,98 @@
 package main.java.com.TLU.studentmanagement.util;
 
+import org.json.JSONObject;
+
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class HttpUtil {
 
-    private static String adminToken = "";
+    private static String accessToken = "";
+    private static String refreshToken = "";
 
-    public static void setAdminToken(String token) {
-        adminToken = token;
+    // Cập nhật accessToken và refreshToken
+    public static void setTokens(String accessToken, String refreshToken) {
+        HttpUtil.accessToken = accessToken;
+        HttpUtil.refreshToken = refreshToken;
+    }
+
+    // Phương thức chung cho tất cả các yêu cầu HTTP
+    private static String sendRequest(String apiUrl, String method, String requestData, String token) throws Exception {
+        URL url = new URL(apiUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + token);
+
+        if (requestData != null) {
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = requestData.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+        }
+
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK || conn.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            return response.toString();
+        } else if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            // Nếu token hết hạn, làm mới token và thực hiện lại request
+            if (refreshAccessToken()) {
+                return sendRequest(apiUrl, method, requestData, accessToken);  // Thực hiện lại request với token mới
+            } else {
+                throw new RuntimeException("Failed to refresh token.");
+            }
+        } else {
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+        }
     }
 
     public static String sendGet(String apiUrl) throws Exception {
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + adminToken);
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-        }
+        return sendRequest(apiUrl, "GET", null, accessToken);
     }
 
     public static String sendPost(String apiUrl, String requestData) throws Exception {
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + adminToken);
-        conn.setDoOutput(true);
-
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = requestData.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK || conn.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-        }
+        return sendRequest(apiUrl, "POST", requestData, accessToken);
     }
 
     public static String sendPost(String apiUrl, String requestData, String token) throws Exception {
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + token);
-        conn.setDoOutput(true);
-
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = requestData.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK || conn.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-        }
+        return sendRequest(apiUrl, "POST", requestData, token);
     }
 
     public static String sendPut(String apiUrl, String requestData) throws Exception {
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("PUT");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + adminToken);
-        conn.setDoOutput(true);
-
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = requestData.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-        }
+        return sendRequest(apiUrl, "PUT", requestData, accessToken);
     }
 
     public static String sendDelete(String apiUrl) throws Exception {
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("DELETE");
-        conn.setRequestProperty("Authorization", "Bearer " + adminToken);
+        return sendRequest(apiUrl, "DELETE", null, accessToken);
+    }
 
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
+    // Phương thức làm mới accessToken
+    private static boolean refreshAccessToken() throws Exception {
+        String apiUrl = "http://localhost:8080/api/auth/refresh";
+        JSONObject jsonInput = new JSONObject();
+        jsonInput.put("refreshToken", refreshToken);
 
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
+        String response = sendRequest(apiUrl, "POST", jsonInput.toString(), accessToken);  // Gửi request với refreshToken
+        JSONObject jsonResponse = new JSONObject(response);
+
+        if (jsonResponse.has("tokens")) {
+            String newAccessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
+            String RefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
+
+            // Cập nhật accessToken mới
+            setTokens(newAccessToken, RefreshToken);
+            return true;
         } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+            return false;
         }
     }
 }
-
-
-
-
-
