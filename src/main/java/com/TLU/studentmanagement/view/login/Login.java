@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 
 import net.miginfocom.swing.MigLayout;
 import main.java.com.TLU.studentmanagement.manager.FormsManager;
@@ -61,25 +62,39 @@ public class Login extends JPanel {
 //        panel.add(createSignupLabel(), "gapy 10");
         add(panel);
 
-        cmdLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = txtUsername.getText();
-                String password = new String(txtPassword.getPassword());
+//        cmdLogin.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                String username = txtUsername.getText();
+//                String password = new String(txtPassword.getPassword());
+//
+//                if (username.equals("admin") && password.equals("password")) {
+//                    // Show success notification
+//                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "This is a success message.");
+//
+//                } else {
+//                    // Show error notification
+//                    Notifications.getInstance().show(Notifications.Type.ERROR, "Invalid username or password.");
+//                }
+//            }
+//        });
+    }
 
-                if (username.equals("admin") && password.equals("password")) {
-                    // Show success notification
-                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "This is a success message.");
+    private JTextField txtUsername;
+    private JPasswordField txtPassword;
+    private JCheckBox chRememberMe;
+    private JButton cmdLogin;
 
-                } else {
-                    // Show error notification
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Invalid username or password.");
-                }
-            }
-        });
+    public String getUsername() {
+        return txtUsername.getText();
+    }
 
+    public String getPassword() {
+        return new String(txtPassword.getPassword());
+    }
 
-
+    public void addLoginListener(ActionListener loginListener) {
+        cmdLogin.addActionListener(loginListener);
     }
 
 //    private Component createSignupLabel() {
@@ -103,9 +118,4 @@ public class Login extends JPanel {
 //        return panel;
 //    }
 
-
-    private JTextField txtUsername;
-    private JPasswordField txtPassword;
-    private JCheckBox chRememberMe;
-    private JButton cmdLogin;
 }
