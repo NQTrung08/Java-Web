@@ -1,18 +1,23 @@
 package main.java.com.TLU.studentmanagement.view.Dashboard;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.net.URL;
-import java.util.Objects;
-
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.FlatLightLaf;
+import net.miginfocom.swing.MigLayout;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.main.Application;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.AccountPanel;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 
 public class HomeView extends JPanel {
 
@@ -22,6 +27,7 @@ public class HomeView extends JPanel {
     private JButton logoutButton;
 
     public HomeView() {
+        FlatLightLaf.setup(); // Sử dụng FlatLaf giao diện đẹp mắt hơn
         initUI();
     }
 
@@ -30,19 +36,24 @@ public class HomeView extends JPanel {
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JPanel navPanel = new JPanel();
-        navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
+        JPanel navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
         navPanel.setBackground(new Color(42, 63, 84));
-        navPanel.setPreferredSize(new Dimension(200, getHeight()));
+        navPanel.setPreferredSize(new Dimension(240, getHeight()));
 
         nameLabel = new JLabel(getWelcomeMessage());
         nameLabel.setForeground(Color.WHITE);
-        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        navPanel.add(nameLabel);
-        navPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        navPanel.add(nameLabel, "gapbottom 30, align center");
 
         logoutButton = new JButton("Đăng Xuất");
+        logoutButton.setPreferredSize(new Dimension(80, 40));
+        logoutButton.putClientProperty(FlatClientProperties.STYLE, "" +
+                "[light]background:darken(@background,10%);" +
+                "[dark]background:lighten(@background,10%);" +
+                "borderWidth:0;" +
+                "focusWidth:0;" +
+                "innerFocusWidth:0;" +
+                "font:16");
         logoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -50,27 +61,34 @@ public class HomeView extends JPanel {
             }
         });
 
-        navPanel.add(logoutButton);
+        navPanel.add(logoutButton, "gapbottom 30, align center");
 
         contentPanel = new JPanel();
         cardLayout = new CardLayout();
         contentPanel.setLayout(cardLayout);
 
-        contentPanel.add(createPage("Trang Học Sinh"), "HỌC SINH");
-        contentPanel.add(createPage("Trang Danh Sách Lớp"), "DANH SÁCH LỚP");
-        contentPanel.add(createPage("Trang Lớp"), "LỚP");
-        contentPanel.add(createPage("Trang Giáo Viên"), "GIÁO VIÊN");
-        contentPanel.add(createPage("Trang Môn Học"), "MÔN HỌC");
-        contentPanel.add(createPage("Trang Học Kỳ"), "HỌC KỲ");
-        contentPanel.add(createPage("Trang Điểm"), "ĐIỂM");
-        contentPanel.add(createPage("Trang Tổng Kết"), "TỔNG KẾT");
+        User user = UserSession.getUser();
+        Teacher teacher = TeacherSession.getTeacher();
 
-        contentPanel.add(new AccountPanel(), "TÀI KHOẢN");
+        if (user != null && !user.isGv() && !user.isAdmin()) {
+            // Nếu là sinh viên, chỉ hiển thị các trang học sinh và lớp
+            contentPanel.add(createPage("Trang Học Sinh"), "HỌC SINH");
+            contentPanel.add(createPage("Trang Lớp"), "LỚP");
+        } else {
+            // Nếu là admin hoặc giáo viên, hiển thị tất cả các trang
+            contentPanel.add(createPage("Trang Học Sinh"), "HỌC SINH");
+            contentPanel.add(createPage("Trang Lớp"), "LỚP");
+            contentPanel.add(createPage("Trang Giáo Viên"), "GIÁO VIÊN");
+            contentPanel.add(createPage("Trang Môn Học"), "MÔN HỌC");
+            contentPanel.add(createPage("Trang Học Kỳ"), "HỌC KỲ");
+            contentPanel.add(createPage("Trang Điểm"), "ĐIỂM");
+            contentPanel.add(createPage("Trang Tổng Kết"), "TỔNG KẾT");
+            contentPanel.add(new AccountPanel(), "TÀI KHOẢN");
+        }
 
-        String[] navItems = {"HỌC SINH", "DANH SÁCH LỚP", "LỚP", "GIÁO VIÊN", "MÔN HỌC", "HỌC KỲ", "ĐIỂM", "TỔNG KẾT", "TÀI KHOẢN"};
+        String[] navItems = {"HỌC SINH", "LỚP", "GIÁO VIÊN", "MÔN HỌC", "HỌC KỲ", "ĐIỂM", "TỔNG KẾT", "TÀI KHOẢN"};
         String[] icons = {
                 "/main/resources/images/student.png",
-                "/main/resources/images/classList.png",
                 "/main/resources/images/class.png",
                 "/main/resources/images/teacher.png",
                 "/main/resources/images/course.png",
@@ -81,37 +99,44 @@ public class HomeView extends JPanel {
         };
 
         for (int i = 0; i < navItems.length; i++) {
-            JPanel navItemPanel = new JPanel();
-            navItemPanel.setLayout(new BoxLayout(navItemPanel, BoxLayout.Y_AXIS));
+            // Kiểm tra vai trò của người dùng để quyết định xem có thêm vào navigation panel hay không
+            if ((user != null && !user.isGv() && !user.isAdmin()) && !navItems[i].equals("HỌC SINH") && !navItems[i].equals("LỚP")) {
+                continue; // Nếu là sinh viên, bỏ qua các nav item không phải là HỌC SINH và LỚP
+            }
+            JPanel navItemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
             navItemPanel.setBackground(new Color(42, 63, 84));
-            navItemPanel.setMaximumSize(new Dimension(200, 50));
             navItemPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            // Sử dụng đường dẫn tài nguyên đúng
             URL iconURL = getClass().getResource(icons[i]);
             if (iconURL == null) {
                 System.err.println("Resource not found: " + icons[i]);
                 continue;
             }
-            JLabel iconLabel = new JLabel(new ImageIcon(iconURL));
-            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-            JLabel navLabel = new JLabel(navItems[i]);
-            navLabel.setForeground(Color.WHITE);
-            navLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            try {
+                ImageIcon icon = new ImageIcon(ImageIO.read(iconURL));
+                Image scaledImage = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+                JLabel iconLabel = new JLabel(new ImageIcon(scaledImage));
 
-            navItemPanel.add(iconLabel);
-            navItemPanel.add(navLabel);
+                JLabel navLabel = new JLabel(navItems[i]);
+                navLabel.setForeground(Color.WHITE);
+                navLabel.setFont(new Font("Roboto", Font.BOLD, 14));
 
-            final String pageName = navItems[i];
-            navItemPanel.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    cardLayout.show(contentPanel, pageName);
-                }
-            });
+                navItemPanel.add(iconLabel);
+                navItemPanel.add(navLabel);
 
-            navPanel.add(navItemPanel);
-            navPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+                final String pageName = navItems[i];
+                navItemPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                        cardLayout.show(contentPanel, pageName);
+                    }
+                });
+
+                navPanel.add(navItemPanel, "gapbottom 20, growx");
+            } catch (IOException ex) {
+                System.err.println("Error loading icon: " + icons[i]);
+                ex.printStackTrace();
+            }
         }
 
         mainPanel.add(navPanel, BorderLayout.WEST);
@@ -119,6 +144,8 @@ public class HomeView extends JPanel {
 
         add(mainPanel);
     }
+
+
 
     private JPanel createPage(String pageName) {
         JPanel panel = new JPanel(new BorderLayout());
@@ -128,18 +155,16 @@ public class HomeView extends JPanel {
     }
 
     private String getWelcomeMessage() {
-        // Lấy thông tin người dùng từ mô hình User hoặc Teacher
-        // Giả sử rằng bạn đã lưu thông tin người dùng vào `User` hoặc `Teacher` theo cách nào đó
-        User user = UserSession.getUser(); // Hoặc TeacherSession.getTeacher(); nếu là Teacher
+        User user = UserSession.getUser();
         if (user != null) {
-            return "Hello, " + user.getFullName();
+            return "Welcome, " + user.getFullName();
         } else {
-            Teacher teacher = TeacherSession.getTeacher(); // Thay thế nếu là Teacher
+            Teacher teacher = TeacherSession.getTeacher();
             if (teacher != null) {
-                return "Hello, " + teacher.getFullName();
+                return "Welcome, " + teacher.getFullName();
             }
         }
-        return "Hello, Guest";
+        return "Welcome, Guest";
     }
 
     private void performLogout() {
@@ -149,4 +174,12 @@ public class HomeView extends JPanel {
         SwingUtilities.getWindowAncestor(this).dispose();
         new Application().setVisible(true);
     }
+
+//    private static BufferedImage toGrayscale(BufferedImage original) {
+//        BufferedImage grayscale = new BufferedImage(original.getWidth(), original.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+//        Graphics g = grayscale.getGraphics();
+//        g.drawImage(original, 0, 0, null);
+//        g.dispose();
+//        return grayscale;
+//    }
 }
