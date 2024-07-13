@@ -1,4 +1,4 @@
-package main.java.com.TLU.studentmanagement.view;
+package main.java.com.TLU.studentmanagement.view.Student;
 
 import javax.swing.*;
 import java.awt.*;

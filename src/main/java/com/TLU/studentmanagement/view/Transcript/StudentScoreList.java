@@ -1,4 +1,4 @@
-package main.java.com.TLU.studentmanagement.view;
+package main.java.com.TLU.studentmanagement.view.Transcript;
 
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import com.google.gson.Gson;

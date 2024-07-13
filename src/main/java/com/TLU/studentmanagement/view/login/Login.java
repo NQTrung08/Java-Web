@@ -25,7 +25,14 @@ public class Login extends JPanel {
         txtPassword = new JPasswordField();
         chRememberMe = new JCheckBox("Remember me");
         cmdLogin = new JButton("Login");
-        JPanel panel = new JPanel(new MigLayout("wrap,fillx,insets 35 45 30 45", "fill,250:280"));
+
+        // Set preferred size for input fields and button
+        txtUsername.setPreferredSize(new Dimension(300, 48));
+        txtPassword.setPreferredSize(new Dimension(300, 48));
+        cmdLogin.setPreferredSize(new Dimension(100, 40));
+
+
+        JPanel panel = new JPanel(new MigLayout("wrap,fillx,insets 35 45 30 45", "fill,300:350"));
         panel.putClientProperty(FlatClientProperties.STYLE, "" +
                 "arc:20;" +
                 "[light]background:darken(@background,3%);" +
@@ -38,7 +45,8 @@ public class Login extends JPanel {
                 "[dark]background:lighten(@background,10%);" +
                 "borderWidth:0;" +
                 "focusWidth:0;" +
-                "innerFocusWidth:0");
+                "innerFocusWidth:0;" +
+                "font:16");
 
         txtUsername.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your username or email");
         txtPassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your password");
@@ -46,21 +54,30 @@ public class Login extends JPanel {
         JLabel lbTitle = new JLabel("Welcome back!");
         JLabel description = new JLabel("Please sign in to access your account");
         lbTitle.putClientProperty(FlatClientProperties.STYLE, "" +
-                "font:bold +10");
+                "font:bold +20");
         description.putClientProperty(FlatClientProperties.STYLE, "" +
                 "[light]foreground:lighten(@foreground,30%);" +
                 "[dark]foreground:darken(@foreground,30%)");
 
+
+        JLabel lblUsername = new JLabel("Username");
+        lblUsername.putClientProperty(FlatClientProperties.STYLE, "font:14;");
+
+        JLabel lblPassword = new JLabel("Password");
+        lblPassword.putClientProperty(FlatClientProperties.STYLE, "font:14;");
+;
         panel.add(lbTitle);
         panel.add(description);
-        panel.add(new JLabel("Username"), "gapy 8");
+        panel.add(lblUsername, "gapy 12");
         panel.add(txtUsername);
-        panel.add(new JLabel("Password"), "gapy 8");
+        panel.add(lblPassword, "gapy 12");
         panel.add(txtPassword);
         panel.add(chRememberMe, "grow 0");
         panel.add(cmdLogin, "gapy 10");
 //        panel.add(createSignupLabel(), "gapy 10");
         add(panel);
+
+        setPreferredSize(new Dimension(400, 500));
 
 //        cmdLogin.addActionListener(new ActionListener() {
 //            @Override

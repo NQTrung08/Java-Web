@@ -2,7 +2,10 @@ package main.java.com.TLU.studentmanagement.controller;
 
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
+import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
+import main.java.com.TLU.studentmanagement.view.Dashboard.HomeView;
 import main.java.com.TLU.studentmanagement.view.login.Login;
 import org.json.JSONObject;
 
@@ -53,18 +56,20 @@ public class LoginController {
 
                         System.out.println("Teacher Info: " + teacher.toString());
 
+                        // Lưu thông tin giáo viên vào TeacherSession
+                        TeacherSession.setTeacher(teacher);
 
-//                        loginView.setVisible(false);
-//                        new Dashboard(teacher.getFullName());
                     } else {
                         User user = fetchUserDetails(userId);
                         Notifications.getInstance().show(Notifications.Type.SUCCESS, "Login successful! Welcome " + user.getFullName());
 
                         saveUserDetails(user);
-
-//                        loginView.setVisible(false);
-//                        new Dashboard(user.getFullName());
+                        // Lưu thông tin người dùng vào UserSession
+                        UserSession.setUser(user);
                     }
+
+                    new HomeView();
+
                 } else {
                     Notifications.getInstance().show(Notifications.Type.ERROR, "Login failed: Missing token in response.");
                 }
