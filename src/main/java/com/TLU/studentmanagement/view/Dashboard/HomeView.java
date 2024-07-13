@@ -14,7 +14,6 @@ import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.AccountPanel;
 
-
 public class HomeView extends JFrame {
 
     private JPanel contentPanel;
@@ -72,15 +71,15 @@ public class HomeView extends JFrame {
 
         String[] navItems = {"HỌC SINH", "DANH SÁCH LỚP", "LỚP", "GIÁO VIÊN", "MÔN HỌC", "HỌC KỲ", "ĐIỂM", "TỔNG KẾT", "TÀI KHOẢN"};
         String[] icons = {
-                "student.png",
-                "classList.png",
-                "class.png",
-                "teacher.png",
-                "course.png",
-                "semester.png",
-                "grades.png",
-                "avgGrades.png",
-                "account.png"
+                "/main/resources/images/student.png",
+                "/main/resources/images/classList.png",
+                "/main/resources/images/class.png",
+                "/main/resources/images/teacher.png",
+                "/main/resources/images/course.png",
+                "/main/resources/images/semester.png",
+                "/main/resources/images/grades.png",
+                "/main/resources/images/avgGrades.png",
+                "/main/resources/images/account.png"
         };
 
         for (int i = 0; i < navItems.length; i++) {
@@ -90,16 +89,13 @@ public class HomeView extends JFrame {
             navItemPanel.setMaximumSize(new Dimension(200, 50));
             navItemPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-
-            URL url = getClass().getResource("resources/images/student.png");
-//            if (url == null) {
-//                throw new RuntimeException("Resource not found");
-//            }
-            System.out.println("Resource found: " + url.toExternalForm());
-
-
             // Sử dụng đường dẫn tài nguyên đúng
-            JLabel iconLabel = new JLabel(new ImageIcon(Objects.requireNonNull(getClass().getResource("resources/images" + icons[i]))));
+            URL iconURL = getClass().getResource(icons[i]);
+            if (iconURL == null) {
+                System.err.println("Resource not found: " + icons[i]);
+                continue;
+            }
+            JLabel iconLabel = new JLabel(new ImageIcon(iconURL));
             iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
             JLabel navLabel = new JLabel(navItems[i]);
@@ -126,7 +122,6 @@ public class HomeView extends JFrame {
         setContentPane(mainPanel);
         setVisible(true);
     }
-
 
     private JPanel createPage(String pageName) {
         JPanel panel = new JPanel(new BorderLayout());
