@@ -9,6 +9,15 @@ public class User {
     private String email;
     private String gender;
     private boolean isAdmin;
+    private boolean isGv;
+
+    public boolean isGv() {
+        return isGv;
+    }
+
+    public void setGv(boolean gv) {
+        isGv = gv;
+    }
 
     public User(String id, String fullname, String msv, String major, String year, String email, String gender) {
         this.id = id;
@@ -86,6 +95,8 @@ public class User {
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
     }
+
+
 
     @Override
     public String toString() {
