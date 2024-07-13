@@ -63,10 +63,6 @@ public class HttpUtil {
         return sendRequest(apiUrl, "POST", requestData, accessToken);
     }
 
-    public static String sendPost(String apiUrl, String requestData, String token) throws Exception {
-        return sendRequest(apiUrl, "POST", requestData, token);
-    }
-
     public static String sendPut(String apiUrl, String requestData) throws Exception {
         return sendRequest(apiUrl, "PUT", requestData, accessToken);
     }
@@ -81,14 +77,15 @@ public class HttpUtil {
         JSONObject jsonInput = new JSONObject();
         jsonInput.put("refreshToken", refreshToken);
 
-        String response = sendRequest(apiUrl, "POST", jsonInput.toString(), accessToken);  // Gửi request với refreshToken
+        // Gửi yêu cầu làm mới token với refreshToken
+        String response = sendRequest(apiUrl, "POST", jsonInput.toString(), refreshToken);
         JSONObject jsonResponse = new JSONObject(response);
 
         if (jsonResponse.has("tokens")) {
             String newAccessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
             String RefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
 
-            // Cập nhật accessToken mới
+            // Cập nhật accessToken và refreshToken mới
             setTokens(newAccessToken, RefreshToken);
             return true;
         } else {
