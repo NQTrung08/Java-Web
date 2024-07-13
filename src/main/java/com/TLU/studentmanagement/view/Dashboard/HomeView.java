@@ -38,7 +38,7 @@ public class HomeView extends JPanel {
 
         JPanel navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
         navPanel.setBackground(new Color(42, 63, 84));
-        navPanel.setPreferredSize(new Dimension(240, getHeight()));
+        navPanel.setPreferredSize(new Dimension(260, getHeight()));
 
         nameLabel = new JLabel(getWelcomeMessage());
         nameLabel.setForeground(Color.WHITE);
@@ -100,8 +100,12 @@ public class HomeView extends JPanel {
 
         for (int i = 0; i < navItems.length; i++) {
             // Kiểm tra vai trò của người dùng để quyết định xem có thêm vào navigation panel hay không
-            if ((user != null && !user.isGv() && !user.isAdmin()) && !navItems[i].equals("HỌC SINH") && !navItems[i].equals("LỚP")) {
-                continue; // Nếu là sinh viên, bỏ qua các nav item không phải là HỌC SINH và LỚP
+            if ((user != null && !user.isGv() && !user.isAdmin()) &&
+                    !navItems[i].equals("HỌC SINH") &&
+                    !navItems[i].equals("MÔN HỌC") &&
+                    !navItems[i].equals("ĐIỂM") &&
+                    !navItems[i].equals("TÀI KHOẢN")) {
+                continue; // Nếu là sinh viên, bỏ qua các nav item không được liệt kê
             }
             JPanel navItemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
             navItemPanel.setBackground(new Color(42, 63, 84));
@@ -170,6 +174,7 @@ public class HomeView extends JPanel {
     private void performLogout() {
         // Xóa thông tin người dùng khỏi session
         UserSession.clear(); // Hoặc TeacherSession.clear(); nếu là Teacher
+        TeacherSession.clear();
         // Quay lại màn hình đăng nhập
         SwingUtilities.getWindowAncestor(this).dispose();
         new Application().setVisible(true);
