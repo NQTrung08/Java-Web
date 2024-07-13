@@ -10,6 +10,7 @@ import main.java.com.TLU.studentmanagement.view.login.Login;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileWriter;
@@ -46,9 +47,10 @@ public class LoginController {
                     String refreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
                     HttpUtil.setTokens(accessToken, refreshToken);
 
-
                     String userId = jsonResponse.getJSONObject("data").getJSONObject("user").getString("_id");
                     boolean isGV = jsonResponse.getJSONObject("data").getJSONObject("user").getBoolean("isGV");
+                    JFrame currentFrame = (JFrame) SwingUtilities.getWindowAncestor((Component) e.getSource());
+
                     if (isGV) {
                         Teacher teacher = fetchTeacherDetails(userId);
 
@@ -68,7 +70,11 @@ public class LoginController {
                         UserSession.setUser(user);
                     }
 
-                    new HomeView();
+                    // Thay đổi nội dung của cửa sổ hiện tại sang HomeView
+                    HomeView homeView = new HomeView();
+                    currentFrame.setContentPane(homeView);
+                    currentFrame.revalidate();
+                    currentFrame.repaint();
 
                 } else {
                     Notifications.getInstance().show(Notifications.Type.ERROR, "Login failed: Missing token in response.");

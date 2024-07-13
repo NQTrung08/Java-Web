@@ -14,7 +14,7 @@ import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.AccountPanel;
 
-public class HomeView extends JFrame {
+public class HomeView extends JPanel {
 
     private JPanel contentPanel;
     private CardLayout cardLayout;
@@ -26,9 +26,7 @@ public class HomeView extends JFrame {
     }
 
     private void initUI() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 700);
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
@@ -119,8 +117,7 @@ public class HomeView extends JFrame {
         mainPanel.add(navPanel, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
-        setContentPane(mainPanel);
-        setVisible(true);
+        add(mainPanel);
     }
 
     private JPanel createPage(String pageName) {
@@ -149,7 +146,7 @@ public class HomeView extends JFrame {
         // Xóa thông tin người dùng khỏi session
         UserSession.clear(); // Hoặc TeacherSession.clear(); nếu là Teacher
         // Quay lại màn hình đăng nhập
-        this.dispose();
+        SwingUtilities.getWindowAncestor(this).dispose();
         new Application().setVisible(true);
     }
 }
