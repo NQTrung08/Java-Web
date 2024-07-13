@@ -2,12 +2,19 @@ package main.java.com.TLU.studentmanagement.view.Dashboard;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.main.Application;
-import net.miginfocom.swing.MigLayout;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
-import main.java.com.TLU.studentmanagement.view.AccountPanel;
+
+import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursesPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Grades.GradesPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Semesters.SemesterPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Student.StudentsPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Teachers.TeachersPanel;
+
+import net.miginfocom.swing.MigLayout;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -32,7 +39,6 @@ public class HomeView extends JPanel {
             "/main/resources/images/student.png", // "Thông tin Học Sinh"
             "/main/resources/images/teacher.png", // "Thông tin Giáo Viên
             "/main/resources/images/semester.png", // "Thông tin Học Kỳ
-//            "/main/resources/images/avgGrades.png"
     };
 
     public HomeView() {
@@ -79,18 +85,18 @@ public class HomeView extends JPanel {
         Teacher teacher = TeacherSession.getTeacher();
 
         // Luôn thêm trang "Thông tin cá nhân" trước tiên
-        addPage("Thông tin cá nhân", "TT cá nhân", navPanel, contentPanel, icons[0]);
-        addPage("Thông tin Môn học", "TT Môn học", navPanel, contentPanel, icons[1]);
+        addPage("Thông tin cá nhân", "TT cá nhân", navPanel, contentPanel, icons[0], new PersonalInfoPanel());
+        addPage("Thông tin Môn học", "TT Môn học", navPanel, contentPanel, icons[1], new CoursesPanel());
 
         if (user != null && !user.isGv() && !user.isAdmin()) {
             // Nếu là sinh viên, chỉ hiển thị các trang học sinh
-            addPage("Phiếu báo điểm", "Phiếu báo điểm", navPanel, contentPanel, icons[2]);
+            addPage("Phiếu báo điểm", "Phiếu báo điểm", navPanel, contentPanel, icons[2], new GradesPanel());
         } else {
             // Nếu là admin hoặc giáo viên, hiển thị tất cả các trang
-            addPage("Thông tin Sinh viên", "TT Sinh viên", navPanel, contentPanel, icons[3]);
-            addPage("Thông tin Giáo Viên", "TT Giáo VIên", navPanel, contentPanel, icons[4]);
-            addPage("Thông tin Học Kỳ", "TT Học Kỳ", navPanel, contentPanel, icons[5]);
-            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2]);
+            addPage("Thông tin Sinh viên", "TT Sinh viên", navPanel, contentPanel, icons[3], new StudentsPanel());
+            addPage("Thông tin Giáo Viên", "TT Giáo Viên", navPanel, contentPanel, icons[4], new TeachersPanel());
+            addPage("Thông tin Học Kỳ", "TT Học Kỳ", navPanel, contentPanel, icons[5], new SemesterPanel());
+            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new GradesPanel());
         }
 
         mainPanel.add(navPanel, BorderLayout.WEST);
@@ -99,9 +105,8 @@ public class HomeView extends JPanel {
         add(mainPanel);
     }
 
-    private void addPage(String pageName, String navItem, JPanel navPanel, JPanel contentPanel, String iconPath) {
-        JPanel page = createPage(pageName);
-        contentPanel.add(page, pageName);
+    private void addPage(String pageName, String navItem, JPanel navPanel, JPanel contentPanel, String iconPath, JPanel pagePanel) {
+        contentPanel.add(pagePanel, pageName);
 
         URL iconURL = getClass().getResource(iconPath);
         if (iconURL == null) {
@@ -136,13 +141,6 @@ public class HomeView extends JPanel {
             System.err.println("Error loading icon: " + iconPath);
             ex.printStackTrace();
         }
-    }
-
-    private JPanel createPage(String pageName) {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(pageName, JLabel.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
     }
 
     private String getWelcomeMessage() {
