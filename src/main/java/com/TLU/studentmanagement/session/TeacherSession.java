@@ -4,6 +4,7 @@ import main.java.com.TLU.studentmanagement.model.Teacher;
 
 public class TeacherSession {
     private static Teacher teacher;
+    private static String accessToken;
 
     public static Teacher getTeacher() {
         return teacher;
@@ -15,5 +16,13 @@ public class TeacherSession {
 
     public static void clear() {
         teacher = null;
+    }
+
+    public static String getAccessToken() {
+        return accessToken;
+    }
+
+    public static void setAccessToken(String token) {
+        TeacherSession.accessToken = token;
     }
 }
