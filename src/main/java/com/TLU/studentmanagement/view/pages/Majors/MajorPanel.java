@@ -1,6 +1,7 @@
 package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
 import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
@@ -34,7 +35,7 @@ public class MajorPanel extends JPanel {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin() || TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isGV()) {
                     showAddMajorForm();
                 } else {
                     JOptionPane.showMessageDialog(null, "Bạn không có quyền thực hiện thao tác này.");
@@ -78,7 +79,7 @@ public class MajorPanel extends JPanel {
     }
 
     private void loadData() {
-        if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() != null && UserSession.getUser().isAdmin() || TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isGV()) {
             try {
                 String apiUrl = "http://localhost:8080/api/major/getAll";
                 String response = HttpUtil.sendGet(apiUrl);
