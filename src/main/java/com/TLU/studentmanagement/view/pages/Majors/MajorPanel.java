@@ -3,6 +3,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Majors;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -80,7 +81,7 @@ public class MajorPanel extends JPanel {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     showAddMajorForm();
                 } else {
-                    JOptionPane.showMessageDialog(null, "Bạn không có quyền thực hiện thao tác này.");
+                    Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
                 }
             }
         });
@@ -106,7 +107,7 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after adding new major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         }
     }
@@ -130,7 +131,7 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after updating the major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         }
     }
@@ -142,10 +143,10 @@ public class MajorPanel extends JPanel {
                 majorTableModel.setMajors(majors);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Bạn không có quyền xem thông tin này.");
+            Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
         }
     }
 
@@ -157,7 +158,7 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after deleting major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         }
     }

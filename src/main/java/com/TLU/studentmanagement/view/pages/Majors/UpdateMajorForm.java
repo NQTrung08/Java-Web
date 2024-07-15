@@ -2,6 +2,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,11 +41,11 @@ public class UpdateMajorForm extends JDialog {
 
                 try {
                     MajorController.updateMajor(major.getId(), name, code);
-                    JOptionPane.showMessageDialog(UpdateMajorForm.this, "Chuyên ngành đã được cập nhật!");
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Chuyên ngành đã được cập nhật!");
                     dispose(); // Đóng form sau khi cập nhật thành công
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(UpdateMajorForm.this, "Error: " + ex.getMessage());
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
                 }
             }
         });
