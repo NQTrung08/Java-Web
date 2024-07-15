@@ -4,6 +4,7 @@ import main.java.com.TLU.studentmanagement.controller.semesters.SemesterControll
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -68,7 +69,7 @@ public class SemesterPanel extends JPanel {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     showAddSemesterForm();
                 } else {
-                    JOptionPane.showMessageDialog(null, "Bạn không có quyền thực hiện thao tác này.");
+                    Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
                 }
             }
         });
@@ -97,22 +98,22 @@ public class SemesterPanel extends JPanel {
                 getAllSemesters();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         }
     }
 
-    private void getAllSemesters() {
+    protected void getAllSemesters() {
         if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
             try {
                 List<Semester> semesters = SemesterController.getAllSemesters();
                 semesterTableModel.setSemesters(semesters);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Bạn không có quyền xem thông tin này.");
+            Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
         }
     }
 
@@ -216,7 +217,7 @@ public class SemesterPanel extends JPanel {
                     if (row != -1) {
                         currentSemester = semesterTableModel.semesters.get(row);
                         if ("Sửa".equals(buttonType)) {
-                            UpdateSemesterForm.showUpdateSemesterForm(currentSemester);
+                            UpdateSemesterForm.showUpdateSemesterForm(currentSemester, SemesterPanel.this);
                         } else if ("Xóa".equals(buttonType)) {
                             deleteSemester(currentSemester);
                         }
