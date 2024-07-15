@@ -3,6 +3,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Courses;
 import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Major;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.util.List;
@@ -60,13 +61,14 @@ public class UpdateCourseForm {
             if (selectedMajor != null) {
                 try {
                     CourseController.updateCourse(course.getId(), updatedName, updatedCode, updatedCredit, selectedMajor.getId());
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Cập nhật khóa học thành công.");
                     coursePanel.getAllCourses();
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Lỗi khi cập nhật khóa học.");
                 }
             } else {
-                JOptionPane.showMessageDialog(null, "Selected major not found.");
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Select major not found.");
             }
         }
     }
