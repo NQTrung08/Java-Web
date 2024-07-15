@@ -48,7 +48,7 @@ public class PersonalInfoPanel extends JPanel {
         lblMajor = createLabel("Ngành học");
         lblYear = createLabel("Năm học");
         lblDob = createLabel("Ngày sinh");
-        lblIsAdmin = createLabel("Quyền Admin");
+        lblIsAdmin = createLabel("Quyền");
 
         personalInfoPanel.add(lblId);
         personalInfoPanel.add(lblFullName);
@@ -96,7 +96,7 @@ public class PersonalInfoPanel extends JPanel {
     public void loadData() {
         try {
             User user = UserSession.getUser();
-            System.out.println(user.toString());
+//            System.out.println(user.toString());
             Teacher teacher = TeacherSession.getTeacher();
 
             if (user != null) {

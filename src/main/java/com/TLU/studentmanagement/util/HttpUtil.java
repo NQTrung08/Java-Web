@@ -33,7 +33,8 @@ public class HttpUtil {
             }
         }
 
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK || conn.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
+        int responseCode = conn.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
@@ -43,7 +44,7 @@ public class HttpUtil {
             }
             in.close();
             return response.toString();
-        } else if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             // Nếu token hết hạn, làm mới token và thực hiện lại request
             if (refreshAccessToken()) {
                 return sendRequest(apiUrl, method, requestData, accessToken);  // Thực hiện lại request với token mới
@@ -51,7 +52,7 @@ public class HttpUtil {
                 throw new RuntimeException("Failed to refresh token.");
             }
         } else {
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+            throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage());
         }
     }
 
@@ -83,10 +84,10 @@ public class HttpUtil {
 
         if (jsonResponse.has("tokens")) {
             String newAccessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
-            String RefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
+            String newRefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
 
             // Cập nhật accessToken và refreshToken mới
-            setTokens(newAccessToken, RefreshToken);
+            setTokens(newAccessToken, newRefreshToken);
             return true;
         } else {
             return false;

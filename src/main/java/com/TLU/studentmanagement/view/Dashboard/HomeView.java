@@ -10,6 +10,7 @@ import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursesPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Grades.GradesPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Majors.MajorPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Semesters.SemesterPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Student.StudentsPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Teachers.TeachersPanel;
@@ -97,6 +98,7 @@ public class HomeView extends JPanel {
             addPage("Thông tin Giáo Viên", "TT Giáo Viên", navPanel, contentPanel, icons[4], new TeachersPanel());
             addPage("Thông tin Học Kỳ", "TT Học Kỳ", navPanel, contentPanel, icons[5], new SemesterPanel());
             addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new GradesPanel());
+            addPage("Thông tin chuyên ngành", "TT Chuyên ngành", navPanel, contentPanel, icons[5], new MajorPanel());
         }
 
         mainPanel.add(navPanel, BorderLayout.WEST);

@@ -46,6 +46,8 @@ public class LoginController {
                     String accessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
                     String refreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
                     HttpUtil.setTokens(accessToken, refreshToken);
+                    UserSession.setAccessToken(accessToken);
+                    TeacherSession.setAccessToken(accessToken);
 
                     String userId = jsonResponse.getJSONObject("data").getJSONObject("user").getString("_id");
                     boolean isGV = jsonResponse.getJSONObject("data").getJSONObject("user").getBoolean("isGV");
