@@ -2,7 +2,9 @@ package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -80,7 +82,7 @@ public class MajorPanel extends JPanel {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     showAddMajorForm();
                 } else {
-                    JOptionPane.showMessageDialog(null, "Bạn không có quyền thực hiện thao tác này.");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             }
         });
@@ -136,7 +138,7 @@ public class MajorPanel extends JPanel {
     }
 
     private void getAllMajors() {
-        if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
             try {
                 List<Major> majors = MajorController.getAllMajors();
                 majorTableModel.setMajors(majors);
@@ -145,7 +147,8 @@ public class MajorPanel extends JPanel {
                 JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Bạn không có quyền xem thông tin này.");
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+
         }
     }
 
@@ -247,16 +250,19 @@ public class MajorPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     int row = majorTable.getSelectedRow();
-                    if (row != -1) {
-                        currentMajor = majorTableModel.majors.get(row);
-                        if ("Sửa".equals(buttonType)) {
-                            showUpdateMajorForm(currentMajor);
-                        } else if ("Xóa".equals(buttonType)) {
-                            deleteMajor(currentMajor);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        if (row != -1) {
+                            currentMajor = majorTableModel.majors.get(row);
+                            if ("Sửa".equals(buttonType)) {
+                                showUpdateMajorForm(currentMajor);
+                            } else if ("Xóa".equals(buttonType)) {
+                                deleteMajor(currentMajor);
+                            }
                         }
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
-                    // Chấm dứt quá trình chỉnh sửa và dừng cập nhật cell
-                    fireEditingStopped();
                 }
             });
         }
