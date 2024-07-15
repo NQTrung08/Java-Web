@@ -1,0 +1,106 @@
+package main.java.com.TLU.studentmanagement.view.pages.Courses;
+
+import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
+import main.java.com.TLU.studentmanagement.model.Major;
+import raven.toast.Notifications;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+
+public class AddCourseForm extends JDialog {
+
+    private JTextField nameField;
+    private JTextField codeField;
+    private JTextField creditField;
+    private JComboBox<String> majorComboBox;
+    private List<Major> majors;
+    private CoursePanel coursePanel;
+
+    public AddCourseForm(JFrame parent, List<Major> majors, CoursePanel coursePanel) {
+        super(parent, "Thêm khóa học", true);
+        this.majors = majors;
+        this.coursePanel = coursePanel;
+        initUI();
+    }
+
+    private void initUI() {
+        setLayout(new GridLayout(5, 2));
+
+        add(new JLabel("Tên:"));
+        nameField = new JTextField();
+        add(nameField);
+
+        add(new JLabel("Mã:"));
+        codeField = new JTextField();
+        add(codeField);
+
+        add(new JLabel("Số tín chỉ:"));
+        creditField = new JTextField();
+        add(creditField);
+
+        add(new JLabel("Chuyên ngành:"));
+        majorComboBox = new JComboBox<>();
+        for (Major major : majors) {
+            majorComboBox.addItem(major.getName());
+        }
+        add(majorComboBox);
+
+        JButton addButton = new JButton("Thêm");
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = nameField.getText();
+                String code = codeField.getText();
+                int credit = Integer.parseInt(creditField.getText());
+                String majorName = (String) majorComboBox.getSelectedItem();
+                Major selectedMajor = null;
+
+                for (Major major : majors) {
+                    if (major.getName().equals(majorName)) {
+                        selectedMajor = major;
+                        break;
+                    }
+                }
+
+                if (selectedMajor != null) {
+                    try {
+                        CourseController.createCourse(name, code, credit, selectedMajor.getId());
+                        Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm khóa học thành công.");
+                        coursePanel.getAllCourses();
+                        dispose();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Add course error.");
+                    }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Selected major not found.");
+                }
+
+            }
+        });
+        add(addButton);
+
+        JButton cancelButton = new JButton("Hủy");
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        add(cancelButton);
+
+        pack();
+        setLocationRelativeTo(getParent());
+    }
+
+    public static void showAddCourseForm(Component parent, List<Major> majors, CoursePanel coursePanel) {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(parent);
+        AddCourseForm form = new AddCourseForm(frame, majors, coursePanel);
+        form.setVisible(true);
+    }
+}
