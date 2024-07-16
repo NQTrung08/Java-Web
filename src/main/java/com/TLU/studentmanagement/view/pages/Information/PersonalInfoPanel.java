@@ -58,7 +58,7 @@ public class PersonalInfoPanel extends JPanel {
 
         String[] personalColumns = {"Thông tin", "Chi tiết"};
         Object[][] personalData = {
-                {"ID", ""},
+                {"Mã", ""},
                 {"Họ tên", ""},
                 {"Giới tính", ""},
                 {"CMND/CCCD", ""},
@@ -137,7 +137,7 @@ public class PersonalInfoPanel extends JPanel {
             Teacher teacher = TeacherSession.getTeacher();
 
             if (user != null) {
-                personalInfoTable.setValueAt(user.getId(), 0, 1);
+                personalInfoTable.setValueAt(user.getMsv(), 0, 1);
                 personalInfoTable.setValueAt(user.getFullName(), 1, 1);
                 personalInfoTable.setValueAt(user.getGender() != null ? user.getGender() : "N/A", 2, 1);
                 personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có trong lớp User
@@ -152,7 +152,7 @@ public class PersonalInfoPanel extends JPanel {
                 contactInfoTable.setValueAt("N/A", 2, 1);  // Quốc gia không có trong lớp User
                 contactInfoTable.setValueAt("N/A", 3, 1);  // Địa chỉ không có trong lớp User
             } else if (teacher != null) {
-                personalInfoTable.setValueAt(teacher.getId(), 0, 1);
+                personalInfoTable.setValueAt(teacher.getMgv(), 0, 1);
                 personalInfoTable.setValueAt(teacher.getFullName(), 1, 1);
                 personalInfoTable.setValueAt("N/A", 2, 1);  // Giới tính không có cho giáo viên
                 personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có cho giáo viên
