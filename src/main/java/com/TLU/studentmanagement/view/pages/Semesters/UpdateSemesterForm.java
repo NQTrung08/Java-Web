@@ -2,12 +2,13 @@ package main.java.com.TLU.studentmanagement.view.pages.Semesters;
 
 import main.java.com.TLU.studentmanagement.controller.semesters.SemesterController;
 import main.java.com.TLU.studentmanagement.model.Semester;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 
 public class UpdateSemesterForm {
 
-    public static void showUpdateSemesterForm(Semester semester) {
+    public static void showUpdateSemesterForm(Semester semester, SemesterPanel semesterPanel) {
         JTextField semesterField = new JTextField(semester.getSemester());
         JTextField groupField = new JTextField(semester.getGroup());
         JTextField yearField = new JTextField(semester.getYear());
@@ -27,11 +28,11 @@ public class UpdateSemesterForm {
             try {
                 SemesterController.updateSemester(semester.getId(), updatedSemester, updatedGroup, updatedYear);
                 // Refresh the semester list
-                // You need to call a method from SemesterPanel to refresh the list
-                // For example, you can use a callback or an event system
+                semesterPanel.getAllSemesters();
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Cập nhật học kỳ thành công.");
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
             }
         }
     }
