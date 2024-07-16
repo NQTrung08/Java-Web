@@ -10,6 +10,42 @@ public class User {
     private String gender;
     private boolean isAdmin;
     private boolean isGv;
+    private String majorId;
+    private String className;
+    private String gvcn;
+    private String gvcnId;
+
+    public String getMajorId() {
+        return majorId;
+    }
+
+    public void setMajorId(String majorId) {
+        this.majorId = majorId;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public void setGvcn(String gvcn) {
+        this.gvcn = gvcn;
+    }
+
+    public String getGvcn() {
+        return gvcn;
+    }
+
+    public String getGvcnId() {
+        return gvcnId;
+    }
+
+    public void setGvcnId(String gvcnId) {
+        this.gvcnId = gvcnId;
+    }
 
     public boolean isGv() {
         return isGv;
@@ -27,6 +63,18 @@ public class User {
         this.year = year;
         this.email = email;
         this.gender = gender;
+    }
+
+    public User(String id, String fullname, String msv, String major, String year, String email, String gender, String gvcn, String className) {
+        this.id = id;
+        this.fullname = fullname;
+        this.msv = msv;
+        this.major = major;
+        this.year = year;
+        this.email = email;
+        this.gender = gender;
+        this.gvcn = gvcn;
+        this.className = className;
     }
 
     public User() {}
@@ -110,4 +158,5 @@ public class User {
                 ", gender='" + gender + '\'' +
                 '}';
     }
+
 }
