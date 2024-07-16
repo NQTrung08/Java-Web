@@ -1,5 +1,6 @@
 package main.java.com.TLU.studentmanagement.view.pages.Courses;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Course;
@@ -33,6 +34,20 @@ public class CoursePanel extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout());
 
+        // Set the theme
+        UIManager.put("TitlePane.background", new Color(240, 240, 240));
+        UIManager.put("Button.arc", 10);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("Button.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("TextField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("PasswordField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("ComboBox.padding", new Insets(4, 6, 4, 6));
+        UIManager.put("TitlePane.unifiedBackground", false);
+        UIManager.put("TitlePane.buttonSize", new Dimension(35, 23));
+        UIManager.put("TitlePane.background", new Color(230, 230, 230));
+        UIManager.put("TitlePane.foreground", Color.BLACK);
+
         // Panel cho tiêu đề và các nút
         JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Thông tin khóa học", JLabel.CENTER);
@@ -42,6 +57,11 @@ public class CoursePanel extends JPanel {
         // Nút Refresh
         refreshButton = new JButton("Refresh");
         refreshButton.setFocusPainted(false);
+        refreshButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setBackground(new Color(88, 86, 214));  // Accent color
+        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setPreferredSize(new Dimension(120, 40));
         refreshButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -53,12 +73,16 @@ public class CoursePanel extends JPanel {
         // Nút Thêm khóa học
         addButton = new JButton("Thêm khóa học");
         addButton.setFocusPainted(false);
+        addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setBackground(new Color(88, 86, 214));  // Accent color
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(150, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     AddCourseForm.showAddCourseForm(CoursePanel.this, majors, CoursePanel.this);
-//                    form.setVisible(true);
                 } else {
                     Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
@@ -66,7 +90,7 @@ public class CoursePanel extends JPanel {
         });
 
         // Panel cho các nút
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.add(refreshButton);
         buttonPanel.add(addButton);
 
@@ -81,10 +105,11 @@ public class CoursePanel extends JPanel {
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
         courseTable.setRowHeight(40);
-
-        courseTable.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        courseTable.setBackground(Color.WHITE);
+        courseTable.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
         courseTable.setShowVerticalLines(true);
         courseTable.setShowHorizontalLines(true);
+        courseTable.setGridColor(new Color(220, 220, 220));
 
         for (int i = 0; i < courseTable.getColumnCount(); i++) {
             courseTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
@@ -93,6 +118,8 @@ public class CoursePanel extends JPanel {
         JTableHeader header = courseTable.getTableHeader();
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(Color.BLACK);
 
         courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Sửa"));
         courseTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer("Xóa"));
@@ -100,7 +127,10 @@ public class CoursePanel extends JPanel {
         courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor("Sửa"));
         courseTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor("Xóa"));
 
-        add(new JScrollPane(courseTable), BorderLayout.CENTER);
+        // Add a JScrollPane with padding around the table
+        JScrollPane scrollPane = new JScrollPane(courseTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  // Add padding to the scroll pane
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     public void getAllCourses() {
@@ -212,8 +242,12 @@ public class CoursePanel extends JPanel {
         public ButtonRenderer(String buttonType) {
             this.buttonType = buttonType;
             setText(buttonType);
-            setFont(getFont().deriveFont(Font.BOLD));
+            setFont(new Font("Arial", Font.BOLD, 14));
+            setForeground(Color.WHITE);
             setFocusPainted(false);
+            setOpaque(true);
+            setBorderPainted(false);
+            setBackground(new Color(87, 87, 166));  // Accent color
         }
 
         @Override
@@ -223,8 +257,8 @@ public class CoursePanel extends JPanel {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
             } else {
-                setBackground(table.getBackground());
-                setForeground(table.getForeground());
+                setBackground(new Color(103, 102, 166));  // Accent color
+                setForeground(Color.WHITE);
             }
             return this;
         }
@@ -236,6 +270,13 @@ public class CoursePanel extends JPanel {
 
         public ButtonEditor(String buttonType) {
             button = new JButton(buttonType);
+            button.setFont(new Font("Arial", Font.BOLD, 14));
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setOpaque(true);
+            button.setBorderPainted(false);
+            button.setBackground(new Color(88, 86, 214));  // Accent color
+
             button.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
