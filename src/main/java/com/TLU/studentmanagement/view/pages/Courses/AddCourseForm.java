@@ -1,6 +1,7 @@
 package main.java.com.TLU.studentmanagement.view.pages.Courses;
 
 import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
+import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import raven.toast.Notifications;
 
@@ -9,8 +10,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-
-import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 
 public class AddCourseForm extends JDialog {
 
@@ -45,42 +44,14 @@ public class AddCourseForm extends JDialog {
 
         add(new JLabel("Chuyên ngành:"));
         majorComboBox = new JComboBox<>();
-        for (Major major : majors) {
-            majorComboBox.addItem(major.getName());
-        }
+        populateMajorComboBox(); // Populate the combo box with majors
         add(majorComboBox);
 
         JButton addButton = new JButton("Thêm");
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String name = nameField.getText();
-                String code = codeField.getText();
-                int credit = Integer.parseInt(creditField.getText());
-                String majorName = (String) majorComboBox.getSelectedItem();
-                Major selectedMajor = null;
-
-                for (Major major : majors) {
-                    if (major.getName().equals(majorName)) {
-                        selectedMajor = major;
-                        break;
-                    }
-                }
-
-                if (selectedMajor != null) {
-                    try {
-                        CourseController.createCourse(name, code, credit, selectedMajor.getId());
-                        Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm khóa học thành công.");
-                        coursePanel.getAllCourses();
-                        dispose();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        Notifications.getInstance().show(Notifications.Type.ERROR, "Add course error.");
-                    }
-                } else {
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Selected major not found.");
-                }
-
+                addCourse();
             }
         });
         add(addButton);
@@ -96,6 +67,52 @@ public class AddCourseForm extends JDialog {
 
         pack();
         setLocationRelativeTo(getParent());
+    }
+
+    private void populateMajorComboBox() {
+        majorComboBox.removeAllItems();
+        for (Major major : majors) {
+            majorComboBox.addItem(major.getName());
+        }
+    }
+
+    private void addCourse() {
+        String name = nameField.getText();
+        String code = codeField.getText();
+        int credit = Integer.parseInt(creditField.getText());
+        String majorName = (String) majorComboBox.getSelectedItem();
+        Major selectedMajor = null;
+
+        for (Major major : majors) {
+            if (major.getName().equals(majorName)) {
+                selectedMajor = major;
+                break;
+            }
+        }
+
+        if (selectedMajor != null) {
+            try {
+                CourseController.createCourse(name, code, credit, selectedMajor.getId());
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm khóa học thành công.");
+                coursePanel.getAllCourses();
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Add course error.");
+            }
+        } else {
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Selected major not found.");
+        }
+    }
+
+    public void refreshMajors() {
+        try {
+            majors = MajorController.getAllMajors();
+            populateMajorComboBox(); // Update the combo box with the new majors list
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Refresh majors error.");
+        }
     }
 
     public static void showAddCourseForm(Component parent, List<Major> majors, CoursePanel coursePanel) {

@@ -46,7 +46,7 @@ public class CoursePanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getAllCourses();
-                getAllMajors();
+                getAllMajors();  // Refresh the list of majors
             }
         });
 
@@ -58,6 +58,7 @@ public class CoursePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     AddCourseForm.showAddCourseForm(CoursePanel.this, majors, CoursePanel.this);
+//                    form.setVisible(true);
                 } else {
                     Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
@@ -119,6 +120,12 @@ public class CoursePanel extends JPanel {
     public void getAllMajors() {
         try {
             majors = MajorController.getAllMajors();
+            // Call refreshMajors() on any open AddCourseForm instances
+            for (Window window : Window.getWindows()) {
+                if (window instanceof AddCourseForm) {
+                    ((AddCourseForm) window).refreshMajors();
+                }
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
