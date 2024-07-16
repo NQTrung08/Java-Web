@@ -19,6 +19,7 @@ import java.util.List;
 public class CoursePanel extends JPanel {
 
     private JButton addButton;
+    private JButton refreshButton;
     private JTable courseTable;
     private CourseTableModel courseTableModel;
     private List<Major> majors;
@@ -32,9 +33,44 @@ public class CoursePanel extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout());
 
+        // Panel cho tiêu đề và các nút
+        JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Thông tin khóa học", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
+        // Nút Refresh
+        refreshButton = new JButton("Refresh");
+        refreshButton.setFocusPainted(false);
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getAllCourses();
+                getAllMajors();
+            }
+        });
+
+        // Nút Thêm khóa học
+        addButton = new JButton("Thêm khóa học");
+        addButton.setFocusPainted(false);
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    AddCourseForm.showAddCourseForm(CoursePanel.this, majors, CoursePanel.this);
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+                }
+            }
+        });
+
+        // Panel cho các nút
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(addButton);
+
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
 
         courseTableModel = new CourseTableModel();
         courseTable = new JTable(courseTableModel);
@@ -64,20 +100,6 @@ public class CoursePanel extends JPanel {
         courseTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor("Xóa"));
 
         add(new JScrollPane(courseTable), BorderLayout.CENTER);
-
-        addButton = new JButton("Thêm khóa học");
-        addButton.setFocusPainted(false);
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
-                    AddCourseForm.showAddCourseForm(CoursePanel.this, majors, CoursePanel.this);
-                } else {
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
-                }
-            }
-        });
-        add(addButton, BorderLayout.SOUTH);
     }
 
     public void getAllCourses() {
@@ -118,7 +140,7 @@ public class CoursePanel extends JPanel {
 
     private class CourseTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ","Chuyên ngành", "Hành động", ""};
+        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ", "Chuyên ngành", "Hành động", ""};
         private List<Course> courses = new ArrayList<>();
 
         public void setCourses(List<Course> courses) {
@@ -141,13 +163,11 @@ public class CoursePanel extends JPanel {
             Course course = courses.get(rowIndex);
             String majorName = "";
             for (Major major : majors) {
-                if(major.getId().equals(course.getMajorId())) {
-                     majorName = major.getName();
+                if (major.getId().equals(course.getMajorId())) {
+                    majorName = major.getName();
                 }
             }
 
-
-//            Major major = majors.
             switch (columnIndex) {
                 case 0:
                     return rowIndex + 1; // STT
