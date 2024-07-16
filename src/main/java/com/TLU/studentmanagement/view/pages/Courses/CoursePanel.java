@@ -4,7 +4,9 @@ import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -55,11 +57,11 @@ public class CoursePanel extends JPanel {
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
 
-        courseTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer("Sửa"));
-        courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Xóa"));
+        courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Sửa"));
+        courseTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer("Xóa"));
 
-        courseTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor("Sửa"));
-        courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor("Xóa"));
+        courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor("Sửa"));
+        courseTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor("Xóa"));
 
         add(new JScrollPane(courseTable), BorderLayout.CENTER);
 
@@ -71,7 +73,7 @@ public class CoursePanel extends JPanel {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     AddCourseForm.showAddCourseForm(CoursePanel.this, majors, CoursePanel.this);
                 } else {
-                    JOptionPane.showMessageDialog(null, "Bạn không có quyền thực hiện thao tác này.");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             }
         });
@@ -79,7 +81,7 @@ public class CoursePanel extends JPanel {
     }
 
     public void getAllCourses() {
-        if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
             try {
                 List<Course> courses = CourseController.getAllCourses();
                 courseTableModel.setCourses(courses);
@@ -116,7 +118,7 @@ public class CoursePanel extends JPanel {
 
     private class CourseTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ", "Hành động", ""};
+        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ","Chuyên ngành", "Hành động", ""};
         private List<Course> courses = new ArrayList<>();
 
         public void setCourses(List<Course> courses) {
@@ -137,6 +139,15 @@ public class CoursePanel extends JPanel {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Course course = courses.get(rowIndex);
+            String majorName = "";
+            for (Major major : majors) {
+                if(major.getId().equals(course.getMajorId())) {
+                     majorName = major.getName();
+                }
+            }
+
+
+//            Major major = majors.
             switch (columnIndex) {
                 case 0:
                     return rowIndex + 1; // STT
@@ -147,8 +158,10 @@ public class CoursePanel extends JPanel {
                 case 3:
                     return course.getCredit();
                 case 4:
-                    return "Sửa";
+                    return majorName;
                 case 5:
+                    return "Sửa";
+                case 6:
                     return "Xóa";
                 default:
                     throw new IllegalArgumentException("Invalid column index");
@@ -162,7 +175,7 @@ public class CoursePanel extends JPanel {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnIndex == 4 || columnIndex == 5;
+            return columnIndex == 5 || columnIndex == 6;
         }
     }
 
@@ -200,15 +213,19 @@ public class CoursePanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     int row = courseTable.getSelectedRow();
-                    if (row != -1) {
-                        currentCourse = courseTableModel.courses.get(row);
-                        if ("Sửa".equals(buttonType)) {
-                            UpdateCourseForm.showUpdateCourseForm(currentCourse, CoursePanel.this, majors);
-                        } else if ("Xóa".equals(buttonType)) {
-                            deleteCourse(currentCourse);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        if (row != -1) {
+                            currentCourse = courseTableModel.courses.get(row);
+                            if ("Sửa".equals(buttonType)) {
+                                UpdateCourseForm.showUpdateCourseForm(currentCourse, CoursePanel.this, majors);
+                            } else if ("Xóa".equals(buttonType)) {
+                                deleteCourse(currentCourse);
+                            }
                         }
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
-                    fireEditingStopped();
                 }
             });
         }

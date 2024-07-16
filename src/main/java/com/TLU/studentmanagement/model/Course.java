@@ -84,21 +84,6 @@ public class Course {
         this.majorId = majorId;
     }
 
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(String updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     @Override
     public String toString() {
@@ -109,8 +94,6 @@ public class Course {
                 ", code='" + code + '\'' +
                 ", credit=" + credit +
                 ", majorId='" + majorId + '\'' + // Thêm majorId vào phương thức toString
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 }

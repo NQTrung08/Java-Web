@@ -24,14 +24,24 @@ public class CourseController {
             course.setName(courseObject.getString("name"));
             course.setCode(courseObject.getString("code"));
             course.setCredit(courseObject.getInt("credit"));
-            course.setCreatedAt(courseObject.getString("createdAt"));
-            course.setUpdatedAt(courseObject.getString("updatedAt"));
 
-            // Kiểm tra và gán majorId nếu tồn tại
-            if (courseObject.has("majorId")) {
-                course.setMajorId(courseObject.getString("majorId"));
+            // Kiểm tra và gán majorId nếu tồn tại và là đối tượng JSON
+            if (courseObject.has("majorId") && !courseObject.isNull("majorId")) {
+                Object majorIdObj = courseObject.get("majorId");
+                if (majorIdObj instanceof JSONObject) {
+                    JSONObject majorIdJson = (JSONObject) majorIdObj;
+                    if (majorIdJson.has("_id")) {
+                        course.setMajorId(majorIdJson.getString("_id"));
+                    } else {
+                        course.setMajorId(""); // Gán giá trị mặc định là rỗng nếu không tìm thấy _id trong đối tượng JSON
+                    }
+                } else if (majorIdObj instanceof String) {
+                    course.setMajorId((String) majorIdObj);
+                } else {
+                    course.setMajorId(""); // Gán giá trị mặc định là rỗng nếu majorId không phải là chuỗi hoặc đối tượng JSON
+                }
             } else {
-                course.setMajorId(null); // Hoặc một giá trị mặc định nào đó nếu cần
+                course.setMajorId(""); // Gán giá trị mặc định là rỗng nếu majorId không tồn tại
             }
 
             courses.add(course);
@@ -44,7 +54,7 @@ public class CourseController {
         jsonInput.put("name", name);
         jsonInput.put("code", code);
         jsonInput.put("credit", credit);
-        jsonInput.put("majorId", majorId);
+        jsonInput.put("majorId", majorId != null ? majorId : ""); // Ensure majorId is never null
 
         String apiUrl = "http://localhost:8080/api/course/add-course";
         HttpUtil.sendPost(apiUrl, jsonInput.toString());
@@ -55,7 +65,7 @@ public class CourseController {
         jsonInput.put("name", name);
         jsonInput.put("code", code);
         jsonInput.put("credit", credit);
-        jsonInput.put("majorId", majorId);
+        jsonInput.put("majorId", majorId != null ? majorId : ""); // Ensure majorId is never null
 
         String apiUrl = "http://localhost:8080/api/course/update/" + id;
         HttpUtil.sendPut(apiUrl, jsonInput.toString());
