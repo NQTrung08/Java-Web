@@ -104,7 +104,7 @@ public class SemesterPanel extends JPanel {
     }
 
     protected void getAllSemesters() {
-        if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
             try {
                 List<Semester> semesters = SemesterController.getAllSemesters();
                 semesterTableModel.setSemesters(semesters);
@@ -214,15 +214,20 @@ public class SemesterPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     int row = semesterTable.getSelectedRow();
-                    if (row != -1) {
-                        currentSemester = semesterTableModel.semesters.get(row);
-                        if ("Sửa".equals(buttonType)) {
-                            UpdateSemesterForm.showUpdateSemesterForm(currentSemester, SemesterPanel.this);
-                        } else if ("Xóa".equals(buttonType)) {
-                            deleteSemester(currentSemester);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        if (row != -1) {
+                            currentSemester = semesterTableModel.semesters.get(row);
+                            if ("Sửa".equals(buttonType)) {
+                                UpdateSemesterForm.showUpdateSemesterForm(currentSemester, SemesterPanel.this);
+                            } else if ("Xóa".equals(buttonType)) {
+                                deleteSemester(currentSemester);
+                            }
                         }
+                        fireEditingStopped();
+
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
-                    fireEditingStopped();
                 }
             });
         }

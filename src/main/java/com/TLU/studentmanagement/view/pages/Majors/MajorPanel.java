@@ -2,6 +2,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import raven.toast.Notifications;
 
@@ -81,7 +82,7 @@ public class MajorPanel extends JPanel {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                     showAddMajorForm();
                 } else {
-                    Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             }
         });
@@ -107,7 +108,7 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after adding new major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         }
     }
@@ -131,22 +132,23 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after updating the major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         }
     }
 
     private void getAllMajors() {
-        if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
             try {
                 List<Major> majors = MajorController.getAllMajors();
                 majorTableModel.setMajors(majors);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         } else {
-            Notifications.getInstance().show(Notifications.Type.WARNING, "Bạn không có quyền xem thông tin này.");
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+
         }
     }
 
@@ -158,7 +160,7 @@ public class MajorPanel extends JPanel {
                 getAllMajors(); // Refresh the list after deleting major
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             }
         }
     }
@@ -248,16 +250,19 @@ public class MajorPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     int row = majorTable.getSelectedRow();
-                    if (row != -1) {
-                        currentMajor = majorTableModel.majors.get(row);
-                        if ("Sửa".equals(buttonType)) {
-                            showUpdateMajorForm(currentMajor);
-                        } else if ("Xóa".equals(buttonType)) {
-                            deleteMajor(currentMajor);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        if (row != -1) {
+                            currentMajor = majorTableModel.majors.get(row);
+                            if ("Sửa".equals(buttonType)) {
+                                showUpdateMajorForm(currentMajor);
+                            } else if ("Xóa".equals(buttonType)) {
+                                deleteMajor(currentMajor);
+                            }
                         }
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
-                    // Chấm dứt quá trình chỉnh sửa và dừng cập nhật cell
-                    fireEditingStopped();
                 }
             });
         }
