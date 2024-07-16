@@ -8,7 +8,7 @@ import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 
 import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
-import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursesPanel;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 import main.java.com.TLU.studentmanagement.view.pages.Grades.GradesPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Majors.MajorPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Semesters.SemesterPanel;
@@ -87,7 +87,7 @@ public class HomeView extends JPanel {
 
         // Luôn thêm trang "Thông tin cá nhân" trước tiên
         addPage("Thông tin cá nhân", "TT cá nhân", navPanel, contentPanel, icons[0], new PersonalInfoPanel());
-        addPage("Thông tin Môn học", "TT Môn học", navPanel, contentPanel, icons[1], new CoursesPanel());
+        addPage("Thông tin Môn học", "TT Môn học", navPanel, contentPanel, icons[1], new CoursePanel());
 
         if (user != null && !user.isGv() && !user.isAdmin()) {
             // Nếu là sinh viên, chỉ hiển thị các trang học sinh
