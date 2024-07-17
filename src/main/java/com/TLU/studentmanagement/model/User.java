@@ -10,6 +10,26 @@ public class User {
     private String className;
     private String email;
     private String majorId;
+    private String major;
+
+    public String getGvcnName() {
+        return gvcnName;
+    }
+
+    public void setGvcnName(String gvcnName) {
+        this.gvcnName = gvcnName;
+    }
+
+    private String gvcnName;
+
+    public String getMajorName() {
+        return major;
+    }
+
+    public void setMajorName(String major) {
+        this.major = major;
+    }
+
     private boolean isAdmin;
     private boolean isGV;
     private boolean deleted;
@@ -122,6 +142,20 @@ public class User {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id='" + id + '\'' +
+                ", fullname='" + fullname + '\'' +
+                ", msv='" + msv + '\'' +
+                ", gvcnid='" + gvcn +'\'' +
+                ", majorId='" + majorId + '\'' +
+                ", year='" + year + '\'' +
+                ", email='" + email + '\'' +
+                ", gender='" + gender + '\'' +
+                '}';
     }
 
 }

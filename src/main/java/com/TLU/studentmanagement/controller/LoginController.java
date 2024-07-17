@@ -67,7 +67,6 @@ public class LoginController {
                         User user = fetchUserDetails(userId);
                         Notifications.getInstance().show(Notifications.Type.SUCCESS, "Login successful! Welcome " + user.getFullName());
 
-                        saveUserDetails(user);
                         // Lưu thông tin người dùng vào UserSession
                         UserSession.setUser(user);
                     }
@@ -122,21 +121,6 @@ public class LoginController {
         }
 
 
-        private void saveUserDetails(User user) {
-            JSONObject userJson = new JSONObject();
-            userJson.put("id", user.getId());
-            userJson.put("msv", user.getMsv());
-            userJson.put("fullname", user.getFullName());
-            userJson.put("email", user.getEmail());
-            userJson.put("isAdmin", user.isAdmin());
 
-            try (FileWriter file = new FileWriter("user_details.json")) {
-                file.write(userJson.toString());
-                file.flush();
-                System.out.println("User details saved to user_details.json");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

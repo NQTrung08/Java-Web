@@ -100,6 +100,7 @@ public class AddStudentForm extends JDialog {
 
         User user = new User(name, msv, year, gvcn, gender, className, email, major);
         userController.createUser(user);
+        System.out.println("User: " + user.toString());
         dispose();
     }
 }
