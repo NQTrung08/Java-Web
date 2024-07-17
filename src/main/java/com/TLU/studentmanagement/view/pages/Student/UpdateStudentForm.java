@@ -1,6 +1,7 @@
 package main.java.com.TLU.studentmanagement.view.pages.Student;
 
 import main.java.com.TLU.studentmanagement.controller.UserController;
+import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
 import main.java.com.TLU.studentmanagement.model.User;
 
 import javax.swing.*;
@@ -9,60 +10,65 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class AddStudentForm extends JDialog {
+public class UpdateStudentForm extends JDialog {
     private JTextField nameField, msvField, classField, emailField, genderField, yearField;
     private JComboBox<String> gvcnComboBox, majorComboBox;
     private UserController userController;
+    private TeacherController teacherController;
+    private User user;
 
-    public AddStudentForm(UserController userController) {
+    public UpdateStudentForm(User user, UserController userController) {
+        this.user = user;
         this.userController = userController;
-        setTitle("Thêm sinh viên");
+        setTitle("Cập nhật sinh viên");
         setModal(true);
         setLayout(new GridLayout(10, 2));
         setSize(400, 400);
 
         add(new JLabel("Tên:"));
-        nameField = new JTextField();
+        nameField = new JTextField(user.getFullName());
         add(nameField);
 
         add(new JLabel("Mã sinh viên:"));
-        msvField = new JTextField();
+        msvField = new JTextField(user.getMsv());
         add(msvField);
 
         add(new JLabel("Năm:"));
-        yearField = new JTextField();
+        yearField = new JTextField(user.getYear());
         add(yearField);
 
         add(new JLabel("Giáo viên chủ nhiệm:"));
         gvcnComboBox = new JComboBox<>();
         loadTeachers();
+        gvcnComboBox.setSelectedItem(user.getGvcn());
         add(gvcnComboBox);
 
         add(new JLabel("Giới tính:"));
-        genderField = new JTextField();
+        genderField = new JTextField(user.getGender());
         add(genderField);
 
         add(new JLabel("Lớp:"));
-        classField = new JTextField();
+        classField = new JTextField(user.getClassName());
         add(classField);
 
         add(new JLabel("Email:"));
-        emailField = new JTextField();
+        emailField = new JTextField(user.getEmail());
         add(emailField);
 
         add(new JLabel("Chuyên ngành:"));
         majorComboBox = new JComboBox<>();
         loadMajors();
+        majorComboBox.setSelectedItem(user.getMajorId());
         add(majorComboBox);
 
-        JButton addButton = new JButton("Thêm");
-        addButton.addActionListener(new ActionListener() {
+        JButton updateButton = new JButton("Cập nhật");
+        updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addUser();
+                updateUser();
             }
         });
-        add(addButton);
+        add(updateButton);
 
         JButton cancelButton = new JButton("Hủy");
         cancelButton.addActionListener(new ActionListener() {
@@ -88,18 +94,17 @@ public class AddStudentForm extends JDialog {
         }
     }
 
-    private void addUser() {
-        String name = nameField.getText();
-        String msv = msvField.getText();
-        String year = yearField.getText();
-        String gvcn = gvcnComboBox.getSelectedItem().toString();
-        String gender = genderField.getText();
-        String className = classField.getText();
-        String email = emailField.getText();
-        String major = majorComboBox.getSelectedItem().toString();
+    private void updateUser() {
+        user.setFullName(nameField.getText());
+        user.setMsv(msvField.getText());
+        user.setYear(yearField.getText());
+        user.setGvcn(gvcnComboBox.getSelectedItem().toString());
+        user.setGender(genderField.getText());
+        user.setClassName(classField.getText());
+        user.setEmail(emailField.getText());
+        user.setMajorId(majorComboBox.getSelectedItem().toString());
 
-        User user = new User(name, msv, year, gvcn, gender, className, email, major);
-        userController.createUser(user);
+        userController.updateUser(user.getId(), user);
         dispose();
     }
 }

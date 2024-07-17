@@ -142,7 +142,7 @@ public class PersonalInfoPanel extends JPanel {
                 personalInfoTable.setValueAt(user.getGender() != null ? user.getGender() : "N/A", 2, 1);
                 personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có trong lớp User
                 personalInfoTable.setValueAt("N/A", 4, 1);  // Lớp sinh viên không có trong lớp User
-                personalInfoTable.setValueAt(user.getMajor() != null ? user.getMajor() : "N/A", 5, 1);
+                personalInfoTable.setValueAt(user.getMajorId() != null ? user.getMajorId() : "N/A", 5, 1);
                 personalInfoTable.setValueAt(user.getYear() != null ? user.getYear() : "N/A", 6, 1);
                 personalInfoTable.setValueAt("N/A", 7, 1);  // Ngày sinh không có trong lớp User
                 personalInfoTable.setValueAt(user.isAdmin() ? "Admin" : "Student", 8, 1);

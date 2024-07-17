@@ -2,78 +2,166 @@ package main.java.com.TLU.studentmanagement.controller;
 
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
-
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserController {
 
-    public static List<User> getAllUsers() throws Exception {
-        String response = HttpUtil.sendGet("http://localhost:8080/api/user/getAll");
-
-        // Debug: Log the raw response
-        System.out.println("API Response: " + response);
-
-        JSONObject responseObject = new JSONObject(response);
-        JSONArray jsonArray = responseObject.getJSONArray("data");
-
+    // Phương thức lấy danh sách tất cả người dùng
+    public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
-            User user = new User(
-                    jsonObject.optString("_id", "N/A"),
-                    jsonObject.optString("fullname", "N/A"),
-                    jsonObject.optString("msv", "N/A"),
-                    jsonObject.optString("major", "N/A"),
-                    jsonObject.optString("year", "N/A"),
-                    jsonObject.optString("email", "N/A"),
-                    jsonObject.optString("gender", "N/A"),
-                    jsonObject.optString("gvcn", "N/A"), // Assuming you have a gvcn field in your User model
-                    jsonObject.optString("class", "N/A") // Assuming you have a class field in your User model
-            );
-            users.add(user);
+        try {
+            String response = HttpUtil.sendGet("http://localhost:8080/api/user/getAll");
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                User user = new User();
+                user.setId(jsonObj.getString("_id"));
+                user.setFullName(jsonObj.optString("fullname"));  // Sử dụng optString để tránh JSONException nếu không có trường này
+                user.setMsv(jsonObj.getString("msv"));
+                user.setYear(jsonObj.optString("year"));
+                user.setGvcn(jsonObj.optString("gvcn"));
+                user.setGender(jsonObj.optString("gender"));
+                user.setClassName(jsonObj.optString("class"));
+                user.setEmail(jsonObj.optString("email"));
+                user.setMajorId(jsonObj.optString("major")); // Đảm bảo bạn đã cập nhật tên trường nếu cần
+                user.setAdmin(jsonObj.getBoolean("isAdmin"));
+                user.setGv(jsonObj.optBoolean("isGV"));
+                user.setDeleted(jsonObj.getBoolean("deleted"));
+                users.add(user);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách người dùng: " + e.getMessage());
         }
         return users;
     }
 
-    // The rest of the methods remain unchanged
-    public static void createUser(String fullname, String msv, String major, String year, String gvcn, String gender, String className, String email, String majorId) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("fullname", fullname);
-        jsonObject.put("msv", msv);
-        jsonObject.put("major", major);
-        jsonObject.put("year", year);
-        jsonObject.put("gvcn", gvcn);
-        jsonObject.put("gender", gender);
-        jsonObject.put("className", className);
-        jsonObject.put("email", email);
-        jsonObject.put("majorId", majorId);
 
-        HttpUtil.sendPost("http://localhost:8080/api/user/create-user", jsonObject.toString());
+    // Phương thức tạo người dùng mới
+    public void createUser(User user) {
+        try {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("fullname", user.getFullName());
+            jsonObj.put("msv", user.getMsv());
+            jsonObj.put("year", user.getYear());
+            jsonObj.put("gvcn", user.getGvcn());
+            jsonObj.put("gender", user.getGender());
+            jsonObj.put("className", user.getClassName());
+            jsonObj.put("email", user.getEmail());
+            jsonObj.put("majorId", user.getMajorId());
+
+            String response = HttpUtil.sendPost("http://localhost:8080/api/user/create-user", jsonObj.toString());
+            JSONObject responseJson = new JSONObject(response);
+
+            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi tạo người dùng: " + e.getMessage());
+        }
     }
 
-    public static void updateUser(String id, String fullname, String msv, String major, String year, String gvcn, String gender, String className, String email, String majorId) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("fullname", fullname);
-        jsonObject.put("msv", msv);
-        jsonObject.put("major", major);
-        jsonObject.put("year", year);
-        jsonObject.put("gvcn", gvcn);
-        jsonObject.put("gender", gender);
-        jsonObject.put("className", className);
-        jsonObject.put("email", email);
-        jsonObject.put("majorId", majorId);
+    // Phương thức cập nhật thông tin người dùng
+    public void updateUser(String userId, User user) {
+        try {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("fullname", user.getFullName());
+            jsonObj.put("msv", user.getMsv());
+            jsonObj.put("year", user.getYear());
+            jsonObj.put("gvcn", user.getGvcn());
+            jsonObj.put("gender", user.getGender());
+            jsonObj.put("className", user.getClassName());
+            jsonObj.put("email", user.getEmail());
+            jsonObj.put("majorId", user.getMajorId());
 
-        HttpUtil.sendPut("http://localhost:8080/api/user/update-profile/" + id, jsonObject.toString());
+            String response = HttpUtil.sendPut("http://localhost:8080/api/user/updateByAdmin/" + userId, jsonObj.toString());
+            JSONObject responseJson = new JSONObject(response);
+
+            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi cập nhật người dùng: " + e.getMessage());
+        }
     }
 
-    public static void deleteUser(String id) throws Exception {
-        HttpUtil.sendDelete("http://localhost:8080/api/user/delete/" + id);
+    // Phương thức xóa người dùng
+    public void deleteUser(String userId) {
+        try {
+            String response = HttpUtil.sendDelete("http://localhost:8080/api/user/delete/" + userId);
+            JSONObject responseJson = new JSONObject(response);
+
+            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi xóa người dùng: " + e.getMessage());
+        }
     }
 
-//    public static String getGvcnNameById(String gvcn) {
-//    }
+    // Phương thức khôi phục người dùng đã xóa
+    public void restoreUser(String userId) {
+        try {
+            String response = HttpUtil.sendPut("http://localhost:8080/api/user/restore/" + userId, null);
+            JSONObject responseJson = new JSONObject(response);
+
+            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi khôi phục người dùng: " + e.getMessage());
+        }
+    }
+
+    // Phương thức lấy danh sách giáo viên từ API hoặc database
+    public List<String> getAllTeachers() {
+        List<String> teachers = new ArrayList<>();
+        try {
+            String response = HttpUtil.sendGet("http://localhost:8080/api/teacher/getAll");
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                teachers.add(jsonObj.getString("fullname"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách giáo viên: " + e.getMessage());
+        }
+        return teachers;
+    }
+
+    // Phương thức lấy danh sách chuyên ngành từ API hoặc database
+    public List<String> getAllMajors() {
+        List<String> majors = new ArrayList<>();
+        try {
+            String response = HttpUtil.sendGet("http://localhost:8080/api/major/getAll");
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                majors.add(jsonObj.getString("name"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách chuyên ngành: " + e.getMessage());
+        }
+        return majors;
+    }
+
 }
