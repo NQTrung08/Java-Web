@@ -21,7 +21,7 @@ public class Application extends JFrame {
     private void init() {
         setTitle("Student Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(new Dimension(1200, 700));
+        setSize(new Dimension(1500, 900));
         setLocationRelativeTo(null);
 
         // Tạo view đăng nhập
