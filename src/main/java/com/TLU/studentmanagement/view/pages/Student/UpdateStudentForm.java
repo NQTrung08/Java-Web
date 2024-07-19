@@ -30,17 +30,17 @@ public class UpdateStudentForm extends JDialog {
         setSize(400, 400);
         setLocationRelativeTo(null);
 
-        add(new JLabel("Tên:"));
-        nameField = new JTextField(user.getFullName());
-        add(nameField);
-
-        add(new JLabel("Mã sinh viên:"));
-        msvField = new JTextField(user.getMsv());
-        add(msvField);
-
-        add(new JLabel("Năm:"));
-        yearField = new JTextField(user.getYear());
-        add(yearField);
+//        add(new JLabel("Tên:"));
+//        nameField = new JTextField(user.getFullName());
+//        add(nameField);
+//
+//        add(new JLabel("Mã sinh viên:"));
+//        msvField = new JTextField(user.getMsv());
+//        add(msvField);
+//
+//        add(new JLabel("Năm:"));
+//        yearField = new JTextField(user.getYear());
+//        add(yearField);
 
         add(new JLabel("Giáo viên chủ nhiệm:"));
         gvcnComboBox = new JComboBox<>();
@@ -48,17 +48,17 @@ public class UpdateStudentForm extends JDialog {
         gvcnComboBox.setSelectedItem(user.getGvcn());
         add(gvcnComboBox);
 
-        add(new JLabel("Giới tính:"));
-        genderField = new JTextField(user.getGender());
-        add(genderField);
-
-        add(new JLabel("Lớp:"));
-        classField = new JTextField(user.getClassName());
-        add(classField);
-
-        add(new JLabel("Email:"));
-        emailField = new JTextField(user.getEmail());
-        add(emailField);
+//        add(new JLabel("Giới tính:"));
+//        genderField = new JTextField(user.getGender());
+//        add(genderField);
+//
+//        add(new JLabel("Lớp:"));
+//        classField = new JTextField(user.getClassName());
+//        add(classField);
+//
+//        add(new JLabel("Email:"));
+//        emailField = new JTextField(user.getEmail());
+//        add(emailField);
 
         add(new JLabel("Chuyên ngành:"));
         majorComboBox = new JComboBox<>();
