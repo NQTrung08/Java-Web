@@ -10,6 +10,7 @@ public class HttpUtil {
 
     private static String accessToken = "";
     private static String refreshToken = "";
+    private static boolean refreshingToken = false;
 
     // Cập nhật accessToken và refreshToken
     public static void setTokens(String accessToken, String refreshToken) {
@@ -17,13 +18,15 @@ public class HttpUtil {
         HttpUtil.refreshToken = refreshToken;
     }
 
-    // Phương thức chung cho tất cả các yêu cầu HTTP
+    // Phương thức chung cho tất cả các yêu cầu HTTP có token
     private static String sendRequest(String apiUrl, String method, String requestData, String token) throws Exception {
         URL url = new URL(apiUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + token);
+        if (token != null && !token.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+        }
 
         if (requestData != null) {
             conn.setDoOutput(true);
@@ -45,52 +48,81 @@ public class HttpUtil {
             in.close();
             return response.toString();
         } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            // Nếu token hết hạn, làm mới token và thực hiện lại request
-            if (refreshAccessToken()) {
-                return sendRequest(apiUrl, method, requestData, accessToken);  // Thực hiện lại request với token mới
-            } else {
-                throw new RuntimeException("Failed to refresh token.");
-            }
+            throw new RuntimeException("Unauthorized");
         } else {
             throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage());
         }
     }
 
+
+    // Phương thức chung cho tất cả các yêu cầu HTTP không cần token
+    private static String sendRequestWithoutToken(String apiUrl, String method, String requestData) throws Exception {
+        return sendRequest(apiUrl, method, requestData, null);
+    }
+
+    public static String sendRequestWithRefresh(String apiUrl, String method, String requestData) throws Exception {
+        try {
+            return sendRequest(apiUrl, method, requestData, accessToken);
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("Unauthorized")) {
+                if (!refreshingToken && refreshAccessToken()) {
+                    return sendRequest(apiUrl, method, requestData, accessToken);  // Thực hiện lại request với token mới
+                } else {
+                    throw new RuntimeException("Failed to refresh token.");
+                }
+            } else {
+                throw e;
+            }
+        }
+    }
+
     public static String sendGet(String apiUrl) throws Exception {
-        return sendRequest(apiUrl, "GET", null, accessToken);
+        return sendRequestWithRefresh(apiUrl, "GET", null);
     }
 
     public static String sendPost(String apiUrl, String requestData) throws Exception {
-        return sendRequest(apiUrl, "POST", requestData, accessToken);
+        return sendRequestWithRefresh(apiUrl, "POST", requestData);
     }
 
     public static String sendPut(String apiUrl, String requestData) throws Exception {
-        return sendRequest(apiUrl, "PUT", requestData, accessToken);
+        return sendRequestWithRefresh(apiUrl, "PUT", requestData);
     }
 
     public static String sendDelete(String apiUrl) throws Exception {
-        return sendRequest(apiUrl, "DELETE", null, accessToken);
+        return sendRequestWithRefresh(apiUrl, "DELETE", null);
     }
 
     // Phương thức làm mới accessToken
     private static boolean refreshAccessToken() throws Exception {
-        String apiUrl = "http://localhost:8080/api/auth/refresh";
-        JSONObject jsonInput = new JSONObject();
-        jsonInput.put("refreshToken", refreshToken);
+        refreshingToken = true;
+        try {
+            String apiUrl = "http://localhost:8080/api/auth/refresh";
+            JSONObject jsonInput = new JSONObject();
+            jsonInput.put("refreshToken", refreshToken);
 
-        // Gửi yêu cầu làm mới token với refreshToken
-        String response = sendRequest(apiUrl, "POST", jsonInput.toString(), refreshToken);
-        JSONObject jsonResponse = new JSONObject(response);
+            System.out.println("Sending refresh token request with refreshToken: " + refreshToken);
+            String response = sendRequestWithoutToken(apiUrl, "POST", jsonInput.toString());
+            System.out.println("Response from refresh token request: " + response);
 
-        if (jsonResponse.has("tokens")) {
-            String newAccessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
-            String newRefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
+            JSONObject jsonResponse = new JSONObject(response);
 
-            // Cập nhật accessToken và refreshToken mới
-            setTokens(newAccessToken, newRefreshToken);
-            return true;
-        } else {
-            return false;
+            if (jsonResponse.has("tokens")) {
+                String newAccessToken = jsonResponse.getJSONObject("tokens").getString("accessToken");
+                String newRefreshToken = jsonResponse.getJSONObject("tokens").getString("refreshToken");
+
+                // Cập nhật accessToken và refreshToken mới
+                setTokens(newAccessToken, newRefreshToken);
+                System.out.println("New accessToken: " + newAccessToken);
+                System.out.println("New accessToken: " + accessToken);
+                System.out.println("New refreshToken: " + refreshToken);
+
+                return true;
+            } else {
+                System.out.println("Refresh token response does not contain tokens.");
+                return false;
+            }
+        } finally {
+            refreshingToken = false;
         }
     }
 }
