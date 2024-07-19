@@ -54,6 +54,7 @@ public class HttpUtil {
         }
     }
 
+
     // Phương thức chung cho tất cả các yêu cầu HTTP không cần token
     private static String sendRequestWithoutToken(String apiUrl, String method, String requestData) throws Exception {
         return sendRequest(apiUrl, method, requestData, null);
@@ -99,8 +100,10 @@ public class HttpUtil {
             JSONObject jsonInput = new JSONObject();
             jsonInput.put("refreshToken", refreshToken);
 
-            // Gửi yêu cầu làm mới token với refreshToken mà không cần accessToken
+            System.out.println("Sending refresh token request with refreshToken: " + refreshToken);
             String response = sendRequestWithoutToken(apiUrl, "POST", jsonInput.toString());
+            System.out.println("Response from refresh token request: " + response);
+
             JSONObject jsonResponse = new JSONObject(response);
 
             if (jsonResponse.has("tokens")) {
@@ -109,8 +112,13 @@ public class HttpUtil {
 
                 // Cập nhật accessToken và refreshToken mới
                 setTokens(newAccessToken, newRefreshToken);
+                System.out.println("New accessToken: " + newAccessToken);
+                System.out.println("New accessToken: " + accessToken);
+                System.out.println("New refreshToken: " + refreshToken);
+
                 return true;
             } else {
+                System.out.println("Refresh token response does not contain tokens.");
                 return false;
             }
         } finally {
