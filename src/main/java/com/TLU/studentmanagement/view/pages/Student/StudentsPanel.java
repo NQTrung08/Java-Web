@@ -7,6 +7,7 @@ import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.AddCourseForm;
 import raven.toast.Notifications;
@@ -173,7 +174,7 @@ public class StudentsPanel extends JPanel {
     }
 
     public void getAllStudents() {
-        if (UserSession.getUser() != null) {
+        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
             try {
                 students = UserController.getAllUsers();
                 studentsTableModel.setStudents(students);
