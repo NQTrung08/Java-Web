@@ -1,5 +1,7 @@
 package main.java.com.TLU.studentmanagement.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
@@ -14,7 +16,7 @@ public class UserController {
 
     private static final String BASE_URL = "http://localhost:8080/api/user/";
 
-    public List<User> getAllUsers() {
+    public static List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         try {
             String response = HttpUtil.sendGet(BASE_URL + "getAll");
@@ -103,7 +105,7 @@ public class UserController {
     }
 
 
-    public void createUser(User user) {
+    public static void createUser(User user) {
         try {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("fullname", user.getFullName());
@@ -115,12 +117,16 @@ public class UserController {
             jsonObj.put("email", user.getEmail());
             jsonObj.put("majorId", user.getMajorId());
 
+            System.out.println(jsonObj);
+//            System.out.println("MajorId: " + user.getMajorId());
+//            System.out.println("GVCN: " + user.getGvcn());
+
             String response = HttpUtil.sendPost(BASE_URL + "create-user", jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
             System.out.println("API response: " + responseJson);
 
-            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+//            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Lỗi khi tạo người dùng: " + e.getMessage());
@@ -130,21 +136,22 @@ public class UserController {
         }
     }
 
-    public void updateUser(String userId, User user) {
+    public static void updateUser(String userId, User user) {
         try {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("gvcn", user.getGvcn());
             jsonObj.put("majorId", user.getMajorId());
 
-            System.out.println("gvcn: " + user.getGvcn());
-            System.out.println("major: " + user.getMajorId());
+            System.out.println("gvcnId: " + user.getGvcn());
+            System.out.println("majorId: " + user.getMajorId());
 
             String response = HttpUtil.sendPut(BASE_URL + "updateByAdmin/" + userId, jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
             System.out.println("API response: " + response);
+//            System.out.println("UserId: " + userId);
 
-            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+//            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Lỗi khi cập nhật người dùng: " + e.getMessage());
@@ -154,12 +161,12 @@ public class UserController {
         }
     }
 
-    public void deleteUser(String userId) {
+    public static void deleteUser(String userId) {
         try {
             String response = HttpUtil.sendDelete(BASE_URL + "delete/" + userId);
             JSONObject responseJson = new JSONObject(response);
 
-            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
+//            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Lỗi khi xóa người dùng: " + e.getMessage());
@@ -169,9 +176,9 @@ public class UserController {
         }
     }
 
-    public void restoreUser(String userId) {
+    public void restoreUser(String msv) {
         try {
-            String response = HttpUtil.sendPut(BASE_URL + "restore/" + userId, null);
+            String response = HttpUtil.sendPut(BASE_URL + "restore/" + msv, null);
             JSONObject responseJson = new JSONObject(response);
 
             JOptionPane.showMessageDialog(null, responseJson.getString("message"));
@@ -184,47 +191,86 @@ public class UserController {
         }
     }
 
-    public List<String> getAllTeachers() {
-        List<String> teachers = new ArrayList<>();
-        try {
-            String response = HttpUtil.sendGet("http://localhost:8080/api/teacher/getAll");
-            JSONObject jsonResponse = new JSONObject(response);
-            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+//    public List<String> getAllTeachers() {
+//        List<String> teachers = new ArrayList<>();
+//        try {
+//            String response = HttpUtil.sendGet("http://localhost:8080/api/teacher/getAll");
+//            JSONObject jsonResponse = new JSONObject(response);
+//            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+//
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                JSONObject jsonObj = jsonArray.getJSONObject(i);
+//                teachers.add(jsonObj.getString("fullname"));
+//            }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách giáo viên: " + e.getMessage());
+//        }
+//        return teachers;
+//    }
+//
+//    public List<String> getAllMajors() {
+//        List<String> majors = new ArrayList<>();
+//        try {
+//            String response = HttpUtil.sendGet("http://localhost:8080/api/major/getAll");
+//            JSONObject jsonResponse = new JSONObject(response);
+//            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+//
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                JSONObject jsonObj = jsonArray.getJSONObject(i);
+//                majors.add(jsonObj.getString("name"));
+//            }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách chuyên ngành: " + e.getMessage());
+//        }
+//        return majors;
+//    }
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObj = jsonArray.getJSONObject(i);
-                teachers.add(jsonObj.getString("fullname"));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách giáo viên: " + e.getMessage());
-        }
-        return teachers;
-    }
-
-    public List<String> getAllMajors() {
-        List<String> majors = new ArrayList<>();
-        try {
-            String response = HttpUtil.sendGet("http://localhost:8080/api/major/getAll");
-            JSONObject jsonResponse = new JSONObject(response);
-            JSONArray jsonArray = jsonResponse.getJSONArray("data");
-
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObj = jsonArray.getJSONObject(i);
-                majors.add(jsonObj.getString("name"));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách chuyên ngành: " + e.getMessage());
-        }
-        return majors;
-    }
+//    public List<User> getAllTeacher() {
+//        List<User> teachers = new ArrayList<>();
+//        try {
+//            String response = HttpUtil.sendGet("http://localhost:8080/api/user/getAll");
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//            JsonNode node = mapper.readTree(response).get("data");
+//
+//            for (JsonNode objNode : node) {
+//                if (objNode.has("isGV") && objNode.get("isGV").asBoolean()) {
+//                    User teacher = mapper.treeToValue(objNode, User.class);
+//                    teachers.add(teacher);
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return teachers;
+//    }
+//
+//    public List<String[]> getAllMajor() {
+//        List<String[]> majors = new ArrayList<>();
+//        try {
+//            String response = HttpUtil.sendGet("http://localhost:8080/api/majors/getAll");
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//            JsonNode node = mapper.readTree(response).get("data");
+//
+//            for (JsonNode objNode : node) {
+//                String id = objNode.get("_id").asText();
+//                String name = objNode.get("name").asText();
+//                majors.add(new String[]{id, name});
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return majors;
+//    }
 
     public List<User> searchStudents(String keyword) {
         List<User> students = new ArrayList<>();

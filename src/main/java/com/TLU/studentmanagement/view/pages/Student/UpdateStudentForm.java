@@ -1,124 +1,147 @@
 package main.java.com.TLU.studentmanagement.view.pages.Student;
 
 import main.java.com.TLU.studentmanagement.controller.UserController;
-import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
+import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
-import main.java.com.TLU.studentmanagement.view.pages.Student.StudentsPanel;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 public class UpdateStudentForm extends JDialog {
-    private JTextField nameField, msvField, classField, emailField, genderField, yearField;
+    private JTextField nameField, msvField, yearField, genderField, classField, emailField;
     private JComboBox<String> gvcnComboBox, majorComboBox;
-    private UserController userController;
-    private TeacherController teacherController;
     private User user;
-
+    private List<Teacher> teachers;
+    private List<Major> majors;
     private StudentsPanel studentsPanel;
 
-    // Constructor
-    public UpdateStudentForm (StudentsPanel studentsPanel) {
-        this.studentsPanel = studentsPanel;
-        // Khởi tạo giao diện và các thành phần khác
-    }
-
-    public UpdateStudentForm(User user, UserController userController) {
+    public UpdateStudentForm(User user, StudentsPanel studentsPanel, List<Teacher> teachers, List<Major> majors) {
         this.user = user;
-        this.userController = userController;
+        this.studentsPanel = studentsPanel;
+        this.teachers = teachers;
+        this.majors = majors;
+
         setTitle("Cập nhật sinh viên");
         setModal(true);
         setLayout(new GridLayout(10, 2));
         setSize(400, 400);
+        setLocationRelativeTo(null);
 
-//        add(new JLabel("Tên:"));
-//        nameField = new JTextField(user.getFullName());
-//        add(nameField);
-//
-//        add(new JLabel("Mã sinh viên:"));
-//        msvField = new JTextField(user.getMsv());
-//        add(msvField);
-//
-//        add(new JLabel("Năm:"));
-//        yearField = new JTextField(user.getYear());
-//        add(yearField);
+        add(new JLabel("Tên:"));
+        nameField = new JTextField(user.getFullName());
+        add(nameField);
+
+        add(new JLabel("Mã sinh viên:"));
+        msvField = new JTextField(user.getMsv());
+        add(msvField);
+
+        add(new JLabel("Năm:"));
+        yearField = new JTextField(user.getYear());
+        add(yearField);
 
         add(new JLabel("Giáo viên chủ nhiệm:"));
         gvcnComboBox = new JComboBox<>();
-        loadTeachers();
+        populateTeacherComboBox();
         gvcnComboBox.setSelectedItem(user.getGvcn());
         add(gvcnComboBox);
 
-//        add(new JLabel("Giới tính:"));
-//        genderField = new JTextField(user.getGender());
-//        add(genderField);
-//
-//        add(new JLabel("Lớp:"));
-//        classField = new JTextField(user.getClassName());
-//        add(classField);
-//
-//        add(new JLabel("Email:"));
-//        emailField = new JTextField(user.getEmail());
-//        add(emailField);
+        add(new JLabel("Giới tính:"));
+        genderField = new JTextField(user.getGender());
+        add(genderField);
+
+        add(new JLabel("Lớp:"));
+        classField = new JTextField(user.getClassName());
+        add(classField);
+
+        add(new JLabel("Email:"));
+        emailField = new JTextField(user.getEmail());
+        add(emailField);
 
         add(new JLabel("Chuyên ngành:"));
         majorComboBox = new JComboBox<>();
-        loadMajors();
+        populateMajorComboBox();
         majorComboBox.setSelectedItem(user.getMajorId());
         add(majorComboBox);
 
         JButton updateButton = new JButton("Cập nhật");
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateUser();
-            }
-        });
+        updateButton.addActionListener(e -> updateUser());
         add(updateButton);
 
         JButton cancelButton = new JButton("Hủy");
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        cancelButton.addActionListener(e -> dispose());
         add(cancelButton);
     }
 
-    private void loadTeachers() {
-        List<String> teachers = userController.getAllTeachers();
-        for (String teacher : teachers) {
-            gvcnComboBox.addItem(teacher);
+    private void populateTeacherComboBox() {
+        gvcnComboBox.removeAllItems();
+        for (Teacher teacher : teachers) {
+            gvcnComboBox.addItem(teacher.getFullName());
         }
     }
 
-    private void loadMajors() {
-        List<String> majors = userController.getAllMajors();
-        for (String major : majors) {
-            majorComboBox.addItem(major);
+    private void populateMajorComboBox() {
+        majorComboBox.removeAllItems();
+        for (Major major : majors) {
+            majorComboBox.addItem(major.getName());
         }
     }
 
     private void updateUser() {
+//        String updatedName = nameField.getText();
+//        String updatedMsv = msvField.getText();
+//        String updatedYear = yearField.getText();
+        String selectedTeacherName = (String) gvcnComboBox.getSelectedItem();
+//        String updatedGender = genderField.getText();
+//        String updatedClassName = classField.getText();
+//        String updatedEmail = emailField.getText();
+        String selectedMajorName = (String) majorComboBox.getSelectedItem();
 
-//        user.setFullName(nameField.getText());
-//        user.setMsv(msvField.getText());
-//        user.setYear(yearField.getText());
-        user.setGvcnName(gvcnComboBox.getSelectedItem().toString());
-//        user.setGender(genderField.getText());
-//        user.setClassName(classField.getText());
-//        user.setEmail(emailField.getText());
-        user.setMajorName(majorComboBox.getSelectedItem().toString());
-
-        userController.updateUser(user.getId(), user);
-
-        if (studentsPanel != null) {
-            studentsPanel.loadUserTable();
+        Teacher selectedTeacher = null;
+        for (Teacher teacher : teachers) {
+            if (teacher.getFullName().equals(selectedTeacherName)) {
+                selectedTeacher = teacher;
+                break;
+            }
         }
-        dispose();
+
+        Major selectedMajor = null;
+        for (Major major : majors) {
+            if (major.getName().equals(selectedMajorName)) {
+                selectedMajor = major;
+                break;
+            }
+        }
+
+        if (selectedTeacher != null && selectedMajor != null) {
+//            user.setFullName(updatedName);
+//            user.setMsv(updatedMsv);
+//            user.setYear(updatedYear);
+            user.setGvcn(selectedTeacher.getId());
+//            user.setGender(updatedGender);
+//            user.setClassName(updatedClassName);
+//            user.setEmail(updatedEmail);
+            user.setMajorId(selectedMajor.getId());
+
+            try {
+                UserController.updateUser(user.getId(), user);
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Cập nhật sinh viên thành công.");
+                studentsPanel.refreshTable();
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Lỗi khi cập nhật sinh viên.");
+            }
+        } else {
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Giáo viên chủ nhiệm hoặc chuyên ngành không tìm thấy.");
+        }
+    }
+
+    public static void showUpdateStudentForm(Component parent, User user, StudentsPanel studentsPanel, List<Teacher> teachers, List<Major> majors) {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(parent);
+        UpdateStudentForm form = new UpdateStudentForm(user, studentsPanel, teachers, majors);
+        form.setVisible(true);
     }
 }

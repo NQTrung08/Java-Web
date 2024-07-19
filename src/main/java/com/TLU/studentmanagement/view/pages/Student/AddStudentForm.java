@@ -1,7 +1,13 @@
 package main.java.com.TLU.studentmanagement.view.pages.Student;
 
 import main.java.com.TLU.studentmanagement.controller.UserController;
+import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
+import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
+import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,16 +16,24 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 public class AddStudentForm extends JDialog {
+
     private JTextField nameField, msvField, classField, emailField, genderField, yearField;
     private JComboBox<String> gvcnComboBox, majorComboBox;
-    private UserController userController;
+    private List<Teacher> teachers;
+    private List<Major> majors;
+    private StudentsPanel studentsPanel;
+    private CoursePanel coursePanel;
 
-    public AddStudentForm(UserController userController) {
-        this.userController = userController;
-        setTitle("Thêm sinh viên");
-        setModal(true);
+    public AddStudentForm(JFrame parent, List<Teacher> teachers, List<Major> majors, StudentsPanel studentsPanel) {
+        super(parent, "Thêm sinh viên", true);
+        this.teachers = teachers;
+        this.majors = majors;
+        this.studentsPanel = studentsPanel;
+        initUI();
+    }
+
+    private void initUI() {
         setLayout(new GridLayout(10, 2));
-        setSize(400, 400);
 
         add(new JLabel("Tên:"));
         nameField = new JTextField();
@@ -35,7 +49,7 @@ public class AddStudentForm extends JDialog {
 
         add(new JLabel("Giáo viên chủ nhiệm:"));
         gvcnComboBox = new JComboBox<>();
-        loadTeachers();
+        populateTeacherComboBox(); // Populate the combo box with teachers
         add(gvcnComboBox);
 
         add(new JLabel("Giới tính:"));
@@ -52,14 +66,14 @@ public class AddStudentForm extends JDialog {
 
         add(new JLabel("Chuyên ngành:"));
         majorComboBox = new JComboBox<>();
-        loadMajors();
+        populateMajorComboBox(); // Populate the combo box with majors
         add(majorComboBox);
 
         JButton addButton = new JButton("Thêm");
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addUser();
+                addStudent();
             }
         });
         add(addButton);
@@ -72,35 +86,100 @@ public class AddStudentForm extends JDialog {
             }
         });
         add(cancelButton);
+
+        pack();
+        setLocationRelativeTo(getParent());
     }
 
-    private void loadTeachers() {
-        List<String> teachers = userController.getAllTeachers();
-        for (String teacher : teachers) {
-            gvcnComboBox.addItem(teacher);
+    private void populateTeacherComboBox() {
+        gvcnComboBox.removeAllItems();
+        for (Teacher teacher : teachers) {
+            gvcnComboBox.addItem(teacher.getFullName());
         }
     }
 
-    private void loadMajors() {
-        List<String> majors = userController.getAllMajors();
-        for (String major : majors) {
-            majorComboBox.addItem(major);
+    private void populateMajorComboBox() {
+        majorComboBox.removeAllItems();
+        for (Major major : majors) {
+            majorComboBox.addItem(major.getName());
         }
     }
 
-    private void addUser() {
+    private void addStudent() {
         String name = nameField.getText();
         String msv = msvField.getText();
         String year = yearField.getText();
-        String gvcn = gvcnComboBox.getSelectedItem().toString();
+        String gvcnName = (String) gvcnComboBox.getSelectedItem();
         String gender = genderField.getText();
         String className = classField.getText();
         String email = emailField.getText();
-        String major = majorComboBox.getSelectedItem().toString();
+        String majorName = (String) majorComboBox.getSelectedItem();
 
-        User user = new User(name, msv, year, gvcn, gender, className, email, major);
-        userController.createUser(user);
-        System.out.println("User: " + user.toString());
-        dispose();
+        Teacher selectedTeacher = null;
+        for (Teacher teacher : teachers) {
+            if (teacher.getFullName().equals(gvcnName)) {
+                selectedTeacher = teacher;
+                break;
+            }
+        }
+
+        Major selectedMajor = null;
+        for (Major major : majors) {
+            if (major.getName().equals(majorName)) {
+                selectedMajor = major;
+                break;
+            }
+        }
+
+        if (selectedTeacher != null && selectedMajor != null) {
+            try {
+                User user = new User();
+                user.setFullName(name);
+                user.setMsv(msv);
+                user.setYear(year);
+                user.setGvcn(selectedTeacher.getId());
+                user.setGender(gender);
+                user.setClassName(className);
+                user.setEmail(email);
+                user.setMajorId(selectedMajor.getId());
+
+                UserController.createUser(user);
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm sinh viên thành công.");
+                studentsPanel.getAllStudents();
+//                coursePanel.getAllCourses(); // Refresh courses or students list
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Add student error.");
+            }
+        } else {
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Selected teacher or major not found.");
+        }
+    }
+
+    public void refreshTeachers() {
+        try {
+            teachers = TeacherController.getAllTeachers();
+            populateTeacherComboBox();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Refresh teachers error.");
+        }
+    }
+
+    public void refreshMajors() {
+        try {
+            majors = MajorController.getAllMajors();
+            populateMajorComboBox();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Refresh majors error.");
+        }
+    }
+
+    public static void showAddStudentForm(Component parent, List<Teacher> teachers, List<Major> majors, StudentsPanel studentsPanel) {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(parent);
+        AddStudentForm form = new AddStudentForm(frame, teachers, majors, studentsPanel);
+        form.setVisible(true);
     }
 }

@@ -2,37 +2,41 @@ package main.java.com.TLU.studentmanagement.view.pages.Student;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.controller.UserController;
+import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
+import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.AddCourseForm;
 import raven.toast.Notifications;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.border.Border;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+//import static main.java.com.TLU.studentmanagement.view.pages.Student.UpdateStudentForm.showUpdateStudentForm;
 
 public class StudentsPanel extends JPanel {
-    private UserController userController;
-    private JTable userTable;
-    private DefaultTableModel tableModel;
+
     private JButton addButton;
     private JButton refreshButton;
+    private JTable studentsTable;
+    private StudentsTableModel studentsTableModel;
+    private List<User> students;
     private List<Major> majors;
-    private List<User> user;
+    private List<Teacher> teachers;
 
     public StudentsPanel() {
-        userController = new UserController();
         initUI();
-        loadUserTable();
+        getAllStudents();
+        getAllMajors();
+        getAllTeachers();
     }
 
     private void initUI() {
@@ -54,7 +58,7 @@ public class StudentsPanel extends JPanel {
 
         // Panel cho tiêu đề và các nút
         JPanel topPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("Danh sách sinh viên", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("Thông tin sinh viên", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
@@ -69,7 +73,10 @@ public class StudentsPanel extends JPanel {
         refreshButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                loadUserTable();
+                getAllStudents();
+                getAllMajors();
+                getAllTeachers();
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
             }
         });
 
@@ -85,9 +92,7 @@ public class StudentsPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
-                    AddStudentForm addStudentForm = new AddStudentForm(userController);
-                    addStudentForm.setVisible(true);
-                    loadUserTable(); // Tải lại bảng sau khi thêm
+                    AddStudentForm.showAddStudentForm(StudentsPanel.this, teachers, majors, StudentsPanel.this);
                 } else {
                     Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
@@ -102,107 +107,242 @@ public class StudentsPanel extends JPanel {
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
 
-        // Tạo bảng
-        tableModel = new DefaultTableModel(new Object[]{"STT", "Tên", "Mã sinh viên", "GVCN", "Chuyên ngành", "Lớp", "Hành động"}, 0);
-        userTable = new JTable(tableModel) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 6; // Chỉ cho phép chỉnh sửa cột Hành động
-            }
-        };
-
-        userTable.setFillsViewportHeight(true);
-        userTable.setRowHeight(40);
-        userTable.setBackground(Color.WHITE);
-        userTable.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        userTable.setShowVerticalLines(true);
-        userTable.setShowHorizontalLines(true);
-        userTable.setGridColor(new Color(220, 220, 220));
+        studentsTableModel = new StudentsTableModel();
+        studentsTable = new JTable(studentsTableModel);
+        studentsTable.setFillsViewportHeight(true);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
-        for (int i = 0; i < userTable.getColumnCount(); i++) {
-            userTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        studentsTable.setRowHeight(40);
+        studentsTable.setBackground(Color.WHITE);
+        studentsTable.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        studentsTable.setShowVerticalLines(true);
+        studentsTable.setShowHorizontalLines(true);
+        studentsTable.setGridColor(new Color(220, 220, 220));
+
+        for (int i = 0; i < studentsTable.getColumnCount(); i++) {
+            studentsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        JTableHeader header = userTable.getTableHeader();
+        JTableHeader header = studentsTable.getTableHeader();
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
         header.setBackground(new Color(240, 240, 240));
         header.setForeground(Color.BLACK);
 
-        userTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        userTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
+        // Thiết lập độ rộng các cột
+        TableColumnModel columnModel = studentsTable.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(50);   // STT
+        columnModel.getColumn(1).setPreferredWidth(150);  // Tên
+        columnModel.getColumn(2).setPreferredWidth(100);  // Mã sinh viên
+        columnModel.getColumn(3).setPreferredWidth(100);  // GVCN
+        columnModel.getColumn(4).setPreferredWidth(100);  // Chuyên ngành
+        columnModel.getColumn(5).setPreferredWidth(80);   // Lớp
+        columnModel.getColumn(6).setPreferredWidth(200);  // Hành động
+
+        studentsTable.getColumnModel().getColumn(6).setCellRenderer(new ActionRenderer());
+        studentsTable.getColumnModel().getColumn(6).setCellEditor(new ActionEditor());
 
         // Add a JScrollPane with padding around the table
-        JScrollPane scrollPane = new JScrollPane(userTable);
+        JScrollPane scrollPane = new JScrollPane(studentsTable);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  // Add padding to the scroll pane
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    void loadUserTable() {
-        List<User> users = userController.getAllUsers();
-        tableModel.setRowCount(0); // Clear existing rows
-
-//        System.out.println(users.toString());
-
-        for (User user : users) {
-//            String gvcnFullName = user.getGvcn(); // Lấy tên giáo viên chủ nhiệm từ user
-//            String majorName = user.getMajorId(); // Lấy tên chuyên ngành từ user
-//
-//            System.out.println("User: " + user);
-//            System.out.println("Ten gv: " + gvcnFullName);
-//            System.out.println("Ten nganh: " + majorName);
-//
-//
-//            // Tìm tên chuyên ngành dựa trên majorId
-//            for (Major major : majors) {
-//                if (major.getId().equals(user.getMajorId())) {
-//                    majorName = major.getName();
-//                    break;
-//                }
-//            }
-
-            tableModel.addRow(new Object[]{
-                    tableModel.getRowCount() + 1, // Số thứ tự
-                    user.getFullName(), // Tên đầy đủ
-                    user.getMsv(), // Mã sinh viên
-                    user.getGvcnName(), // Tên giáo viên chủ nhiệm
-                    user.getMajorName(), // Tên chuyên ngành
-                    user.getClassName(), // Tên lớp
-                    "Sửa | Xóa | Xem chi tiết" // Các tác vụ khác
-            });
+    public void getAllStudents() {
+        if (UserSession.getUser() != null) {
+            try {
+                students = UserController.getAllUsers();
+                studentsTableModel.setStudents(students);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Bạn không có quyền xem thông tin này.");
         }
     }
 
-
-    private void showUserDetails(User user) {
-        StudentDetail studentDetail = new StudentDetail(user);
-        studentDetail.setVisible(true);
+    public void getAllMajors() {
+        try {
+            majors = MajorController.getAllMajors();
+            // Call refreshMajors() on any open AddCourseForm instances
+            for (Window window : Window.getWindows()) {
+                if (window instanceof AddStudentForm) {
+                    ((AddStudentForm) window).refreshMajors();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+        }
     }
 
-    private void showUpdateUserForm(User user) {
-        UpdateStudentForm updateStudentForm = new UpdateStudentForm(user, userController);
-        updateStudentForm.setVisible(true);
-        loadUserTable(); // Tải lại bảng sau khi cập nhật
+    public void getAllTeachers() {
+        try {
+            teachers = TeacherController.getAllTeachers();
+            // Call refreshMajors() on any open AddCourseForm instances
+            for (Window window : Window.getWindows()) {
+                if (window instanceof AddStudentForm) {
+                    ((AddStudentForm) window).refreshTeachers();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+        }
     }
 
-    private class ButtonRenderer extends JPanel implements TableCellRenderer {
-        private final JButton editButton;
-        private final JButton deleteButton;
-        private final JButton detailButton;
+    private void deleteStudent(User student) {
+        int option = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn muốn xóa sinh viên " + student.getFullName() + " không?", "Xóa sinh viên", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                UserController.deleteUser(student.getId());
+                getAllStudents();
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Delete success.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            }
+        }
+    }
 
-        public ButtonRenderer() {
-            setLayout(new FlowLayout());
+//    public void refreshTable() {
+//        // Lấy lại danh sách sinh viên từ cơ sở dữ liệu
+//        List<User> students = UserController.getAllUsers();
+//
+//        // Cập nhật bảng sinh viên với danh sách mới
+//        // Giả sử bạn có một JTable để hiển thị danh sách sinh viên
+//        DefaultTableModel model = (DefaultTableModel) studentsTable.getModel();
+//        model.setRowCount(0); // Xóa các hàng hiện tại
+//
+//        for (User student : students) {
+//            model.addRow(new Object[]{student.getMsv(), student.getFullName(), student.getClassName(), student.getMajorName()});
+//        }
+//    }
 
-            editButton = new JButton("Sửa");
-            deleteButton = new JButton("Xóa");
-            detailButton = new JButton("Xem chi tiết");
+    public void refreshTable() {
+        // Lấy lại danh sách sinh viên từ cơ sở dữ liệu
+        List<User> updatedStudents = UserController.getAllUsers();
+
+        // Cập nhật dữ liệu cho StudentsTableModel
+        studentsTableModel.setStudents(updatedStudents);
+    }
+
+
+    private class StudentsTableModel extends AbstractTableModel {
+
+        private final String[] columnNames = {"STT", "Tên", "Mã sinh viên", "GVCN", "Chuyên ngành", "Lớp", "Hành động"};
+        private List<User> students = new ArrayList<>();
+
+        public void setStudents(List<User> students) {
+            this.students = students;
+            fireTableDataChanged();
+        }
+
+        @Override
+        public int getRowCount() {
+            return students.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columnNames.length;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            User student = students.get(rowIndex);
+
+            String majorName = "";
+            for (Major major : majors) {
+                if (major.getId().equals(student.getMajorId())) {
+                    majorName = major.getName();
+                }
+            }
+
+            String gvcnName = "";
+            for (Teacher teacher : teachers) {
+                if (teacher.getId().equals(student.getGvcn())) {
+                    gvcnName = teacher.getFullName();
+                }
+            }
+
+            switch (columnIndex) {
+                case 0:
+                    return rowIndex + 1; // STT
+                case 1:
+                    return student.getFullName();
+                case 2:
+                    return student.getMsv();
+                case 3:
+                    return gvcnName;
+                case 4:
+                    return majorName;
+                case 5:
+                    return student.getClassName();
+                case 6:
+                    return "Hành động";
+                default:
+                    throw new IllegalArgumentException("Invalid column index");
+            }
+        }
+
+        @Override
+        public String getColumnName(int columnIndex) {
+            return columnNames[columnIndex];
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return columnIndex == 6;
+        }
+    }
+
+    private class ActionRenderer extends JPanel implements TableCellRenderer {
+
+        public ActionRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 6, 6));
+            JButton editButton = createButton("Sửa");
+            JButton deleteButton = createButton("Xóa");
+            JButton viewButton = createButton("Xem chi tiết");
 
             add(editButton);
             add(deleteButton);
-            add(detailButton);
+            add(viewButton);
+        }
+
+        private JButton createButton(String text) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.PLAIN, 14));
+            button.setForeground(Color.BLACK);
+            button.setFocusPainted(false);
+            button.setOpaque(true);
+            button.setBorderPainted(true);
+
+            // Create empty border with padding
+            Border emptyBorder = BorderFactory.createEmptyBorder(2, 4, 2, 4);
+
+            // Create rounded border
+            Border roundedBorder = new RoundedBorder(10); // 10 is the radius of curvature
+
+            // Combine empty border with rounded border
+            Border compoundBorder = BorderFactory.createCompoundBorder(roundedBorder, emptyBorder);
+
+            // Set the compound border to the button
+            button.setBorder(compoundBorder);
+
+//            Border compoundBorder = BorderFactory.createCompoundBorder(
+//                    BorderFactory.createLineBorder(new Color(0, 0, 0)),
+//                    BorderFactory.createEmptyBorder(4, 8, 4, 8)
+//            );
+//            button.setBorder(compoundBorder);
+
+//            button.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+//            button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+//            button.setBackground(new Color(88, 86, 214));  // Accent color
+            return button;
         }
 
         @Override
@@ -211,70 +351,143 @@ public class StudentsPanel extends JPanel {
         }
     }
 
-    private class ButtonEditor extends DefaultCellEditor {
-        protected JPanel panel;
+    private class ActionEditor extends AbstractCellEditor implements TableCellEditor {
+
+        private final JPanel panel;
         private final JButton editButton;
         private final JButton deleteButton;
-        private final JButton detailButton;
+        private final JButton viewButton;
+        private User currentStudent;
 
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-
-            panel = new JPanel(new FlowLayout());
-            editButton = new JButton("Sửa");
-            deleteButton = new JButton("Xóa");
-            detailButton = new JButton("Xem chi tiết");
-
-            panel.add(editButton);
-            panel.add(deleteButton);
-            panel.add(detailButton);
+        public ActionEditor() {
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 6));
+            editButton = createButton("Sửa");
+            deleteButton = createButton("Xóa");
+            viewButton = createButton("Xem chi tiết");
 
             editButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(ActionEvent e) {
-                    int row = userTable.getSelectedRow();
-                    String userId = tableModel.getValueAt(row, 2).toString();
-                    User user = userController.getAllUsers().stream().filter(u -> u.getMsv().equals(userId)).findFirst().orElse(null);
-                    if (user != null) {
-                        showUpdateUserForm(user);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        // Add logic to update student
+                        showUpdateStudentForm(currentStudent);
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
                 }
             });
 
             deleteButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(ActionEvent e) {
-                    int row = userTable.getSelectedRow();
-                    String userId = tableModel.getValueAt(row, 2).toString();
-                    userController.deleteUser(userId);
-                    loadUserTable(); // Tải lại bảng sau khi xóa
-                }
-            });
-
-            detailButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    int row = userTable.getSelectedRow();
-                    String userId = tableModel.getValueAt(row, 2).toString();
-                    User user = userController.getAllUsers().stream().filter(u -> u.getMsv().equals(userId)).findFirst().orElse(null);
-                    if (user != null) {
-                        showUserDetails(user);
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        deleteStudent(currentStudent);
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
                 }
             });
+
+            viewButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                        // Thêm logic để xem chi tiết sinh viên
+                        StudentDetail studentDetail = new StudentDetail(currentStudent, teachers, majors);
+                        studentDetail.setVisible(true);
+                        fireEditingStopped();
+                    } else {
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+                    }
+                }
+            });
+
+            panel.add(editButton);
+            panel.add(deleteButton);
+            panel.add(viewButton);
+        }
+
+        private JButton createButton(String text) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.PLAIN, 14));
+            button.setForeground(Color.BLACK);
+            button.setFocusPainted(false);
+            button.setOpaque(true);
+            button.setBorderPainted(true);
+
+            // Create empty border with padding
+            Border emptyBorder = BorderFactory.createEmptyBorder(2, 4, 2, 4);
+
+            // Create rounded border
+            Border roundedBorder = new RoundedBorder(10); // 10 is the radius of curvature
+
+            // Combine empty border with rounded border
+            Border compoundBorder = BorderFactory.createCompoundBorder(roundedBorder, emptyBorder);
+
+            // Set the compound border to the button
+            button.setBorder(compoundBorder);
+
+//            Border compoundBorder = BorderFactory.createCompoundBorder(
+//                    BorderFactory.createLineBorder(new Color(0, 0, 0)),
+//                    BorderFactory.createEmptyBorder(4, 8, 4, 8)
+//            );
+//            button.setBorder(compoundBorder);
+
+//            button.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
+//            button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+//            button.setBackground(new Color(88, 86, 214));  // Accent color
+            return button;
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            currentStudent = studentsTableModel.students.get(row);
             return panel;
         }
 
         @Override
         public Object getCellEditorValue() {
-            return null;
+            return panel;
         }
 
         @Override
         public boolean stopCellEditing() {
             fireEditingStopped();
-            return super.stopCellEditing();
+            return true;
         }
+    }
+
+    static class RoundedBorder implements Border {
+        private int radius;
+
+        public RoundedBorder(int radius) {
+            this.radius = radius;
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c) {
+            // Adjust insets to reduce spacing between border and text
+            int top = 2; // Top padding
+            int left = 4; // Left padding
+            int bottom = 2; // Bottom padding
+            int right = 4; // Right padding
+            return new Insets(top, left, bottom, right);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return true;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+        }
+    }
+
+    private void showUpdateStudentForm(User student) {
+        UpdateStudentForm.showUpdateStudentForm(this, student, this, teachers, majors);
     }
 }
