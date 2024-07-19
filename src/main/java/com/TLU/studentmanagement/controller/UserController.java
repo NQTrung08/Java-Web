@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -147,13 +149,13 @@ public class UserController {
             jsonObj.put("gvcn", user.getGvcn());
             jsonObj.put("majorId", user.getMajorId());
 
-            System.out.println("gvcnId: " + user.getGvcn());
-            System.out.println("majorId: " + user.getMajorId());
+//            System.out.println("gvcnId: " + user.getGvcn());
+//            System.out.println("majorId: " + user.getMajorId());
 
             String response = HttpUtil.sendPut(BASE_URL + "updateByAdmin/" + userId, jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
-            System.out.println("API response: " + response);
+//            System.out.println("API response: " + response);
 //            System.out.println("UserId: " + userId);
 
 //            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
@@ -279,23 +281,31 @@ public class UserController {
 
     public static List<User> searchStudents(String keyword) {
         List<User> students = new ArrayList<>();
-        String apiUrl = BASE_URL + "searchStudents/?keyword=" + keyword;
-
         try {
-            String response = HttpUtil.sendPost(apiUrl, null); // Since no requestData is needed for this endpoint
+            // Mã hóa từ khóa
+            String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString());
+
+            // Thêm từ khóa vào URL
+            String apiUrl = BASE_URL + "searchStudents/?keyword=" + encodedKeyword;
+
+            String response = HttpUtil.sendPost(apiUrl, null);  // Không cần requestData cho phương thức GET
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObj = jsonArray.getJSONObject(i);
                 User user = new User();
+                user.setId(jsonObj.optString("_id"));
                 user.setFullName(jsonObj.optString("fullname"));
                 user.setMsv(jsonObj.getString("msv"));
                 user.setYear(jsonObj.optString("year"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
+                user.setMajorId(jsonObj.optString("majorId"));
+                user.setGvcn(jsonObj.optString("gvcn"));
                 students.add(user);
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error parsing JSON data: " + e.getMessage());
