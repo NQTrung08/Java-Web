@@ -174,7 +174,7 @@ public class StudentsPanel extends JPanel {
     }
 
     public void getAllStudents() {
-        if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
+        if (TeacherSession.getTeacher() != null || UserSession.getUser() != null) {
             try {
                 students = UserController.getAllUsers();
                 studentsTableModel.setStudents(students);
