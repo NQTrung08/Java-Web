@@ -1,150 +1,185 @@
-//package main.java.com.TLU.studentmanagement.view.pages.Student;
-//
-//import javax.swing.*;
-//import java.awt.*;
-//import java.awt.event.ActionEvent;
-//import java.awt.event.ActionListener;
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//import main.java.com.TLU.studentmanagement.model.Teacher;
-//import org.json.JSONArray;
-//import org.json.JSONObject;
-//import main.java.com.TLU.studentmanagement.util.HttpUtil;
-//
-//public class AddStudentForm extends JFrame {
-//
-//    private JTextField fullNameField;
-//    private JTextField msvField;
-//    private JTextField majorField;
-//    private JTextField yearField;
-//    private JComboBox<Teacher> gvcnComboBox;
-//    private JTextField genderField;
-//    private JTextField classNameField;
-//    private JTextField emailField;
-//    private String adminToken; // Token xác thực admin
-//    private List<Teacher> teachers;
-//
-//    public AddStudentForm(String adminToken) {
-//        this.adminToken = adminToken; // Lưu token
-//        teachers = fetchTeachers(); // Lấy danh sách giáo viên từ API
-//
-//        setTitle("Add Student");
-//        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//        setSize(400, 400);
-//        setLocationRelativeTo(null);
-//        setLayout(new GridLayout(9, 2, 10, 10));
-//
-//        // Form fields
-//        add(new JLabel("Full Name:"));
-//        fullNameField = new JTextField();
-//        add(fullNameField);
-//
-//        add(new JLabel("MSV:"));
-//        msvField = new JTextField();
-//        add(msvField);
-//
-//        add(new JLabel("Major:"));
-//        majorField = new JTextField();
-//        add(majorField);
-//
-//        add(new JLabel("Year:"));
-//        yearField = new JTextField();
-//        add(yearField);
-//
-//        add(new JLabel("GVCN:"));
-//        gvcnComboBox = new JComboBox<>();
-//        for (Teacher teacher : teachers) {
-//            gvcnComboBox.addItem(teacher);
-//        }
-//        add(gvcnComboBox);
-//
-//        add(new JLabel("Gender:"));
-//        genderField = new JTextField();
-//        add(genderField);
-//
-//        add(new JLabel("Class Name:"));
-//        classNameField = new JTextField();
-//        add(classNameField);
-//
-//        add(new JLabel("Email:"));
-//        emailField = new JTextField();
-//        add(emailField);
-//
-//        // Submit button
-//        JButton submitButton = new JButton("Submit");
-//        submitButton.addActionListener(new SubmitButtonListener());
-//        add(submitButton);
-//
-//        setVisible(true);
-//    }
-//
-//    // Phương thức để lấy danh sách giáo viên từ API
-//    public List<Teacher> fetchTeachers() {
-//        List<Teacher> teacherList = new ArrayList<>();
-//        try {
-//            String apiUrl = "http://localhost:8080/api/teacher/get-all";
-//            String response = HttpUtil.sendGet(apiUrl);
-//            System.out.println("API Response: " + response); // In ra phản hồi từ API để kiểm tra
-//
-//            // Chuyển đổi phản hồi JSON thành đối tượng JSON
-//            JSONObject jsonResponse = new JSONObject(response);
-//            JSONArray jsonArray = jsonResponse.getJSONArray("data");
-//
-//            // Lặp qua mỗi đối tượng JSON trong mảng
-//            for (int i = 0; i < jsonArray.length(); i++) {
-//                JSONObject jsonObject = jsonArray.getJSONObject(i);
-//
-//                // Lấy giá trị của thuộc tính "fullname" và "mgv"
-//                String _id = jsonObject.getString("_id");
-//
-//                String fullName = jsonObject.getString("fullname");
-//                String mgv = jsonObject.getString("mgv");
-//
-//                // Tạo đối tượng Teacher và thêm vào danh sách teacherList
-//                teacherList.add(new Teacher(_id, mgv, fullName));
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return teacherList;
-//    }
-//
-//    private class SubmitButtonListener implements ActionListener {
-//        @Override
-//        public void actionPerformed(ActionEvent e) {
-//            try {
-//                String apiUrl = "http://localhost:8080/api/user/create-user";
-//                JSONObject jsonInput = new JSONObject();
-//                jsonInput.put("fullName", fullNameField.getText());
-//                jsonInput.put("msv", msvField.getText());
-//                jsonInput.put("major", majorField.getText());
-//                jsonInput.put("year", yearField.getText());
-//
-//                // Lấy Teacher từ gvcnComboBox và lấy mgv của nó
-//                Teacher selectedTeacher = (Teacher) gvcnComboBox.getSelectedItem();
-//                jsonInput.put("gvcn", selectedTeacher.getMgv());
-//
-//                jsonInput.put("gender", genderField.getText());
-//                jsonInput.put("className", classNameField.getText());
-//                jsonInput.put("email", emailField.getText());
-//
-//                String requestData = jsonInput.toString();
-//                System.out.print(requestData);
-//                String response = HttpUtil.sendPost(apiUrl, requestData, adminToken);
-//
-//                JOptionPane.showMessageDialog(null, "Student added successfully!");
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
-//            }
-//        }
-//    }
-//
-//    public static void main(String[] args) {
-//        // Chạy ứng dụng với một token giả định (thay thế token thực tế của bạn)
-//        String adminToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2OGJiNWVlNjBhOTdhYmQxN2NhMTM1MCIsImlzQWRtaW4iOnRydWUsImlhdCI6MTcyMDYyMjQ3NiwiZXhwIjoxNzIwODgxNjc2fQ.PCF_OgbcFepaG-ETuxP9XVmebV4m6n7W6dVx6q0-ghg";
-//        SwingUtilities.invokeLater(() -> new AddStudentForm(adminToken));
-//    }
-//}
-//
+package main.java.com.TLU.studentmanagement.view.pages.Student;
+
+import main.java.com.TLU.studentmanagement.controller.UserController;
+import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
+import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
+import main.java.com.TLU.studentmanagement.model.Major;
+import main.java.com.TLU.studentmanagement.model.Teacher;
+import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+import raven.toast.Notifications;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+public class AddStudentForm extends JDialog {
+
+    private JTextField nameField, msvField, classField, emailField, genderField, yearField;
+    private JComboBox<String> gvcnComboBox, majorComboBox;
+    private List<Teacher> teachers;
+    private List<Major> majors;
+    private StudentsPanel studentsPanel;
+    private CoursePanel coursePanel;
+
+    public AddStudentForm(JFrame parent, List<Teacher> teachers, List<Major> majors, StudentsPanel studentsPanel) {
+        super(parent, "Thêm sinh viên", true);
+        this.teachers = teachers;
+        this.majors = majors;
+        this.studentsPanel = studentsPanel;
+        initUI();
+    }
+
+    private void initUI() {
+        setLayout(new GridLayout(10, 2));
+
+        add(new JLabel("Tên:"));
+        nameField = new JTextField();
+        add(nameField);
+
+        add(new JLabel("Mã sinh viên:"));
+        msvField = new JTextField();
+        add(msvField);
+
+        add(new JLabel("Năm:"));
+        yearField = new JTextField();
+        add(yearField);
+
+        add(new JLabel("Giáo viên chủ nhiệm:"));
+        gvcnComboBox = new JComboBox<>();
+        populateTeacherComboBox(); // Populate the combo box with teachers
+        add(gvcnComboBox);
+
+        add(new JLabel("Giới tính:"));
+        genderField = new JTextField();
+        add(genderField);
+
+        add(new JLabel("Lớp:"));
+        classField = new JTextField();
+        add(classField);
+
+        add(new JLabel("Email:"));
+        emailField = new JTextField();
+        add(emailField);
+
+        add(new JLabel("Chuyên ngành:"));
+        majorComboBox = new JComboBox<>();
+        populateMajorComboBox(); // Populate the combo box with majors
+        add(majorComboBox);
+
+        JButton addButton = new JButton("Thêm");
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addStudent();
+            }
+        });
+        add(addButton);
+
+        JButton cancelButton = new JButton("Hủy");
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        add(cancelButton);
+
+        pack();
+        setLocationRelativeTo(getParent());
+    }
+
+    private void populateTeacherComboBox() {
+        gvcnComboBox.removeAllItems();
+        for (Teacher teacher : teachers) {
+            gvcnComboBox.addItem(teacher.getFullName());
+        }
+    }
+
+    private void populateMajorComboBox() {
+        majorComboBox.removeAllItems();
+        for (Major major : majors) {
+            majorComboBox.addItem(major.getName());
+        }
+    }
+
+    private void addStudent() {
+        String name = nameField.getText();
+        String msv = msvField.getText();
+        String year = yearField.getText();
+        String gvcnName = (String) gvcnComboBox.getSelectedItem();
+        String gender = genderField.getText();
+        String className = classField.getText();
+        String email = emailField.getText();
+        String majorName = (String) majorComboBox.getSelectedItem();
+
+        Teacher selectedTeacher = null;
+        for (Teacher teacher : teachers) {
+            if (teacher.getFullName().equals(gvcnName)) {
+                selectedTeacher = teacher;
+                break;
+            }
+        }
+
+        Major selectedMajor = null;
+        for (Major major : majors) {
+            if (major.getName().equals(majorName)) {
+                selectedMajor = major;
+                break;
+            }
+        }
+
+        if (selectedTeacher != null && selectedMajor != null) {
+            try {
+                User user = new User();
+                user.setFullName(name);
+                user.setMsv(msv);
+                user.setYear(year);
+                user.setGvcn(selectedTeacher.getId());
+                user.setGender(gender);
+                user.setClassName(className);
+                user.setEmail(email);
+                user.setMajorId(selectedMajor.getId());
+
+                UserController.createUser(user);
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm sinh viên thành công.");
+                studentsPanel.getAllStudents();
+//                coursePanel.getAllCourses(); // Refresh courses or students list
+                dispose();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Add student error.");
+            }
+        } else {
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Selected teacher or major not found.");
+        }
+    }
+
+    public void refreshTeachers() {
+        try {
+            teachers = TeacherController.getAllTeachers();
+            populateTeacherComboBox();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Refresh teachers error.");
+        }
+    }
+
+    public void refreshMajors() {
+        try {
+            majors = MajorController.getAllMajors();
+            populateMajorComboBox();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Refresh majors error.");
+        }
+    }
+
+    public static void showAddStudentForm(Component parent, List<Teacher> teachers, List<Major> majors, StudentsPanel studentsPanel) {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(parent);
+        AddStudentForm form = new AddStudentForm(frame, teachers, majors, studentsPanel);
+        form.setVisible(true);
+    }
+}

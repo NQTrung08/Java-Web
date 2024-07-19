@@ -4,34 +4,50 @@ public class User {
     private String id;
     private String fullname;
     private String msv;
-    private String major;
     private String year;
-    private String email;
+    private String gvcn;
     private String gender;
-    private boolean isAdmin;
-    private boolean isGv;
+    private String className;
+    private String email;
+    private String majorId;
+    private String major;
 
-    public boolean isGv() {
-        return isGv;
+    public String getGvcnName() {
+        return gvcnName;
     }
 
-    public void setGv(boolean gv) {
-        isGv = gv;
+    public void setGvcnName(String gvcnName) {
+        this.gvcnName = gvcnName;
     }
 
-    public User(String id, String fullname, String msv, String major, String year, String email, String gender) {
-        this.id = id;
-        this.fullname = fullname;
-        this.msv = msv;
+    private String gvcnName;
+
+    public String getMajorName() {
+        return major;
+    }
+
+    public void setMajorName(String major) {
         this.major = major;
-        this.year = year;
-        this.email = email;
-        this.gender = gender;
     }
+
+    private boolean isAdmin;
+    private boolean isGV;
+    private boolean deleted;
 
     public User() {}
 
-    // Getters and setters
+    public User(String fullname, String msv, String year, String gvcn, String gender, String className, String email, String majorId) {
+        this.fullname = fullname;
+        this.msv = msv;
+        this.year = year;
+        this.gvcn = gvcn;
+        this.gender = gender;
+        this.className = className;
+        this.email = email;
+        this.majorId = majorId;
+    }
+
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -56,14 +72,6 @@ public class User {
         this.msv = msv;
     }
 
-    public String getMajor() {
-        return major;
-    }
-
-    public void setMajor(String major) {
-        this.major = major;
-    }
-
     public String getYear() {
         return year;
     }
@@ -72,12 +80,12 @@ public class User {
         this.year = year;
     }
 
-    public String getEmail() {
-        return email;
+    public String getGvcn() {
+        return gvcn;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setGvcn(String gvcn) {
+        this.gvcn = gvcn;
     }
 
     public String getGender() {
@@ -88,15 +96,53 @@ public class User {
         this.gender = gender;
     }
 
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMajorId() {
+        return majorId;
+    }
+
+    public void setMajorId(String majorId) {
+        this.majorId = majorId;
+    }
+
     public boolean isAdmin() {
         return isAdmin;
     }
 
-    public void setAdmin(boolean isAdmin) {
-        this.isAdmin = isAdmin;
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 
+    public boolean isGv() {
+        return isGV;
+    }
 
+    public void setGv(boolean GV) {
+        isGV = GV;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 
     @Override
     public String toString() {
@@ -104,10 +150,12 @@ public class User {
                 "id='" + id + '\'' +
                 ", fullname='" + fullname + '\'' +
                 ", msv='" + msv + '\'' +
-                ", major='" + major + '\'' +
+                ", gvcnid='" + gvcn +'\'' +
+                ", majorId='" + majorId + '\'' +
                 ", year='" + year + '\'' +
                 ", email='" + email + '\'' +
                 ", gender='" + gender + '\'' +
                 '}';
     }
+
 }
