@@ -26,6 +26,8 @@ public class StudentsPanel extends JPanel {
 
     private JButton addButton;
     private JButton refreshButton;
+    private JButton searchButton;
+    private JTextField searchField;
     private JTable studentsTable;
     private StudentsTableModel studentsTableModel;
     private List<User> students;
@@ -98,6 +100,28 @@ public class StudentsPanel extends JPanel {
                 }
             }
         });
+
+        // Panel for search field and button
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        searchField = new JTextField(20);
+        searchPanel.add(searchField);
+
+        searchButton = new JButton("Tìm kiếm");
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String keyword = searchField.getText().trim();
+                if (!keyword.isEmpty()) {
+                    searchStudents(keyword);
+                } else {
+                    getAllStudents(); // If search field is empty, refresh with all students
+                }
+            }
+        });
+        searchPanel.add(searchButton);
+
+        add(searchPanel, BorderLayout.WEST);
 
         // Panel cho các nút
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
@@ -207,6 +231,20 @@ public class StudentsPanel extends JPanel {
             }
         }
     }
+
+    public void searchStudents(String keyword) {
+        try {
+            students = UserController.searchStudents(keyword);
+            if (students.isEmpty()) {
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Không tìm thấy sinh viên.");
+            }
+            studentsTableModel.setStudents(students);
+        } catch (Exception e) {
+            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Lỗi khi tìm kiếm sinh viên: " + e.getMessage());
+        }
+    }
+
 
 //    public void refreshTable() {
 //        // Lấy lại danh sách sinh viên từ cơ sở dữ liệu

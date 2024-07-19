@@ -7,8 +7,13 @@ import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.net.URL;
 
 import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -272,37 +277,33 @@ public class UserController {
 //        return majors;
 //    }
 
-    public List<User> searchStudents(String keyword) {
+    public static List<User> searchStudents(String keyword) {
         List<User> students = new ArrayList<>();
+        String apiUrl = BASE_URL + "searchStudents/?keyword=" + keyword;
+
         try {
-            String response = HttpUtil.sendGet(BASE_URL + "searchStudents?keyword=" + keyword);
+            String response = HttpUtil.sendPost(apiUrl, null); // Since no requestData is needed for this endpoint
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObj = jsonArray.getJSONObject(i);
                 User user = new User();
-                user.setId(jsonObj.getString("_id"));
                 user.setFullName(jsonObj.optString("fullname"));
                 user.setMsv(jsonObj.getString("msv"));
                 user.setYear(jsonObj.optString("year"));
-                user.setGvcn(jsonObj.optString("gvcn"));
-                user.setGender(jsonObj.optString("gender"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
-                user.setMajorId(jsonObj.optString("major"));
-                user.setAdmin(jsonObj.getBoolean("isAdmin"));
-                user.setGv(jsonObj.optBoolean("isGV"));
-                user.setDeleted(jsonObj.getBoolean("deleted"));
                 students.add(user);
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error parsing JSON data: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi tìm kiếm sinh viên: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error searching students: " + e.getMessage());
         }
+
         return students;
     }
 }
