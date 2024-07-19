@@ -64,6 +64,28 @@ public class StudentsPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
+        // Panel cho các nút
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+
+        // Ô tìm kiếm
+        searchField = new JTextField(20);
+        buttonPanel.add(searchField);
+
+        // Nút Tìm kiếm
+        searchButton = new JButton("Tìm kiếm");
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String keyword = searchField.getText().trim();
+                if (!keyword.isEmpty()) {
+                    searchStudents(keyword);
+                } else {
+                    getAllStudents(); // If search field is empty, refresh with all students
+                }
+            }
+        });
+        buttonPanel.add(searchButton);
+
         // Nút Refresh
         refreshButton = new JButton("Refresh");
         refreshButton.setFocusPainted(false);
@@ -78,9 +100,11 @@ public class StudentsPanel extends JPanel {
                 getAllStudents();
                 getAllMajors();
                 getAllTeachers();
+                searchField.setText("");
                 Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
             }
         });
+        buttonPanel.add(refreshButton);
 
         // Nút Thêm sinh viên
         addButton = new JButton("Thêm sinh viên");
@@ -100,32 +124,6 @@ public class StudentsPanel extends JPanel {
                 }
             }
         });
-
-        // Panel for search field and button
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-
-        searchField = new JTextField(20);
-        searchPanel.add(searchField);
-
-        searchButton = new JButton("Tìm kiếm");
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String keyword = searchField.getText().trim();
-                if (!keyword.isEmpty()) {
-                    searchStudents(keyword);
-                } else {
-                    getAllStudents(); // If search field is empty, refresh with all students
-                }
-            }
-        });
-        searchPanel.add(searchButton);
-
-        add(searchPanel, BorderLayout.WEST);
-
-        // Panel cho các nút
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        buttonPanel.add(refreshButton);
         buttonPanel.add(addButton);
 
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -235,6 +233,7 @@ public class StudentsPanel extends JPanel {
     public void searchStudents(String keyword) {
         try {
             students = UserController.searchStudents(keyword);
+            System.out.println("Keyword: " + keyword);
             if (students.isEmpty()) {
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Không tìm thấy sinh viên.");
             }
