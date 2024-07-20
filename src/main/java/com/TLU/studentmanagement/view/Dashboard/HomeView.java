@@ -31,6 +31,7 @@ public class HomeView extends JPanel {
     private CardLayout cardLayout;
     private JLabel nameLabel;
     private JButton logoutButton;
+    private JPanel navPanel; // Khai báo navPanel là một trường của lớp HomeView
 
     // Mảng đường dẫn ảnh
     private String[] icons = {
@@ -51,7 +52,7 @@ public class HomeView extends JPanel {
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JPanel navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
+        navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
         navPanel.setBackground(new Color(42, 63, 84));
         navPanel.setPreferredSize(new Dimension(240, getHeight()));
 
@@ -101,6 +102,9 @@ public class HomeView extends JPanel {
             addPage("Thông tin chuyên ngành", "TT Chuyên ngành", navPanel, contentPanel, icons[5], new MajorPanel());
         }
 
+        // Chọn mục điều hướng ban đầu
+//        selectNavItem("Thông tin cá nhân");
+
         mainPanel.add(navPanel, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -112,7 +116,7 @@ public class HomeView extends JPanel {
 
         URL iconURL = getClass().getResource(iconPath);
         if (iconURL == null) {
-            System.err.println("Resource not found: " + iconPath);
+            System.err.println("Không tìm thấy tài nguyên: " + iconPath);
             return;
         }
 
@@ -132,18 +136,53 @@ public class HomeView extends JPanel {
             navItemPanel.add(iconLabel);
             navItemPanel.add(navLabel);
 
+            // Thêm lắng nghe sự kiện chuột để thay đổi màu nền khi click
             navItemPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     cardLayout.show(contentPanel, pageName);
+                    navItemPanel.setBackground(Color.gray);
+//                    selectNavItem(pageName); // Chuyển đổi sang trang có tên là 'pageName' khi click vào navItem
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    navItemPanel.setBackground(Color.GRAY); // Đổi màu nền khi rê chuột vào
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    navItemPanel.setBackground(new Color(42, 63, 84)); // Đổi lại màu nền khi rê chuột ra
                 }
             });
 
             navPanel.add(navItemPanel, "gapbottom 20, growx");
         } catch (IOException ex) {
-            System.err.println("Error loading icon: " + iconPath);
+            System.err.println("Lỗi khi tải biểu tượng: " + iconPath);
             ex.printStackTrace();
         }
     }
+
+    private void selectNavItem(String name) {
+        System.out.println(name);
+        Component[] components = navPanel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel) {
+                JPanel navItemPanel = (JPanel) component;
+                JLabel navLabel = (JLabel) navItemPanel.getComponent(1); // Lấy JLabel trong navItemPanel
+
+                System.out.println(navLabel.getText());
+
+                if (navLabel.getText().equals(name)) {
+                    navItemPanel.setBackground(Color.GRAY); // Thiết lập màu nền xám cho navItemPanel đã chọn
+                    cardLayout.show(contentPanel, name); // Chuyển đổi sang trang có tên là 'name'
+                } else {
+                    navItemPanel.setBackground(new Color(42, 63, 84)); // Thiết lập lại màu nền cho các navItemPanel khác
+                }
+            }
+        }
+    }
+
 
     private String getWelcomeMessage() {
         User user = UserSession.getUser();
@@ -155,7 +194,7 @@ public class HomeView extends JPanel {
                 return "Welcome, " + teacher.getFullName();
             }
         }
-        return "Welcome, Guest";
+        return "Welcome";
     }
 
     private void performLogout() {
