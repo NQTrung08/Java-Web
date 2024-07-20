@@ -130,7 +130,7 @@ public class CoursePanel extends JPanel {
         courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
 
         // Ẩn cột Hành động nếu không phải Admin
-        if (UserSession.getUser() == null || !UserSession.getUser().isAdmin()) {
+        if (UserSession.getUser() == null || !UserSession.getUser().isAdmin() || TeacherSession.getTeacher() == null || !TeacherSession.getTeacher().isAdmin()) {
             courseTable.removeColumn(courseTable.getColumnModel().getColumn(5));
         } else {
             courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
