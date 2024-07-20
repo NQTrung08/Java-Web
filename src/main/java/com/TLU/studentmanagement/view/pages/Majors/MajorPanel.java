@@ -65,12 +65,10 @@ public class MajorPanel extends JPanel {
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40)); // Cập nhật chiều cao của header
 
         // Thêm các cột Sửa và Xóa
-        majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer("Sửa"));
-        majorTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Xóa"));
+        majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
 
         // Xử lý các sự kiện nhấn nút
-        majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor("Sửa"));
-        majorTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor("Xóa"));
+        majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor());
 
         add(new JScrollPane(majorTable), BorderLayout.CENTER);
 
@@ -167,7 +165,7 @@ public class MajorPanel extends JPanel {
 
     private class MajorTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"Tên chuyên ngành", "Mã chuyên ngành", "Hành động", ""};
+        private final String[] columnNames = {"Tên chuyên ngành", "Mã chuyên ngành", "Hành động"};
         private List<Major> majors = new ArrayList<>();
 
         public void setMajors(List<Major> majors) {
@@ -194,9 +192,7 @@ public class MajorPanel extends JPanel {
                 case 1:
                     return major.getCode();
                 case 2:
-                    return "Sửa";
-                case 3:
-                    return "Xóa";
+                    return "Hành động";
                 default:
                     throw new IllegalArgumentException("Invalid column index");
             }
@@ -209,72 +205,105 @@ public class MajorPanel extends JPanel {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnIndex == 2 || columnIndex == 3; // Chỉ cột Sửa và Xóa mới có thể chỉnh sửa
+            return columnIndex == 2; // Chỉ cột Hành động mới có thể chỉnh sửa
         }
     }
 
     private class ButtonRenderer extends JButton implements TableCellRenderer {
-        private final String buttonType;
+        private final JButton editButton;
+        private final JButton deleteButton;
 
-        public ButtonRenderer(String buttonType) {
-            this.buttonType = buttonType;
-            setText(buttonType);
-            setFont(getFont().deriveFont(Font.BOLD));
-            setFocusPainted(false);
-            setForeground(UIManager.getColor("Button.foreground"));
-            setBackground(UIManager.getColor("Button.background"));
-            setBorder(BorderFactory.createLineBorder(UIManager.getColor("Button.borderColor")));
+        public ButtonRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+
+            editButton = new JButton("Sửa");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton = new JButton("Xóa");
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            add(editButton);
+            add(deleteButton);
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            if (isSelected) {
-                setBackground(UIManager.getColor("Table.selectionBackground"));
-                setForeground(UIManager.getColor("Table.selectionForeground"));
-            } else {
-                setBackground(UIManager.getColor("Button.background"));
-                setForeground(UIManager.getColor("Button.foreground"));
-            }
             return this;
         }
     }
 
     private class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton button;
+        private final JButton editButton;
+        private final JButton deleteButton;
         private Major currentMajor;
 
-        public ButtonEditor(String buttonType) {
-            button = new JButton(buttonType);
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+        public ButtonEditor() {
+            editButton = new JButton("Sửa");
+            deleteButton = new JButton("Xóa");
+
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            editButton.addActionListener(e -> {
                     int row = majorTable.getSelectedRow();
                     if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                         if (row != -1) {
                             currentMajor = majorTableModel.majors.get(row);
-                            if ("Sửa".equals(buttonType)) {
-                                showUpdateMajorForm(currentMajor);
-                            } else if ("Xóa".equals(buttonType)) {
-                                deleteMajor(currentMajor);
-                            }
+                            showUpdateMajorForm(currentMajor);
                         }
-                        fireEditingStopped();
                     } else {
                         Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
+            });
+
+            deleteButton.addActionListener(e -> {
+                int row = majorTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentMajor = majorTableModel.majors.get(row);
+                        deleteMajor(currentMajor);
+                    }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             });
+
+
+
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
+            return new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)) {{
+                add(editButton);
+                add(deleteButton);
+            }};
         }
 
         @Override
         public Object getCellEditorValue() {
-            return button.getText();
+            return "Hành động";
         }
 
         @Override
