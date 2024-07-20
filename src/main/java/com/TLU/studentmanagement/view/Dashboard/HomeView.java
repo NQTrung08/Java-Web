@@ -32,6 +32,7 @@ public class HomeView extends JPanel {
     private JLabel nameLabel;
     private JButton logoutButton;
     private JPanel navPanel; // Khai báo navPanel là một trường của lớp HomeView
+    private JPanel currentSelectedNavItem = null; // Biến để lưu trữ navItemPanel hiện tại được chọn
 
     // Mảng đường dẫn ảnh
     private String[] icons = {
@@ -39,8 +40,8 @@ public class HomeView extends JPanel {
             "/main/resources/images/course.png", // "Môn học"
             "/main/resources/images/grades.png", // "Phiếu báo điểm"
             "/main/resources/images/student.png", // "Thông tin Học Sinh"
-            "/main/resources/images/teacher.png", // "Thông tin Giáo Viên
-            "/main/resources/images/semester.png", // "Thông tin Học Kỳ
+            "/main/resources/images/teacher.png", // "Thông tin Giáo Viên"
+            "/main/resources/images/semester.png", // "Thông tin Học Kỳ"
     };
 
     public HomeView() {
@@ -103,7 +104,13 @@ public class HomeView extends JPanel {
         }
 
         // Chọn mục điều hướng ban đầu
-//        selectNavItem("Thông tin cá nhân");
+        // Chọn mục điều hướng ban đầu
+        for (Component component : navPanel.getComponents()) {
+            if (component instanceof JPanel) {
+                updateNavItemSelection((JPanel) component);
+                break;
+            }
+        }
 
         mainPanel.add(navPanel, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -141,18 +148,21 @@ public class HomeView extends JPanel {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     cardLayout.show(contentPanel, pageName);
-                    navItemPanel.setBackground(Color.gray);
-//                    selectNavItem(pageName); // Chuyển đổi sang trang có tên là 'pageName' khi click vào navItem
+                    updateNavItemSelection(navItemPanel); // Cập nhật màu nền khi navItem được chọn
                 }
 
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    navItemPanel.setBackground(Color.GRAY); // Đổi màu nền khi rê chuột vào
+                    if (navItemPanel != currentSelectedNavItem) {
+                        navItemPanel.setBackground(Color.GRAY); // Đổi màu nền khi rê chuột vào
+                    }
                 }
 
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    navItemPanel.setBackground(new Color(42, 63, 84)); // Đổi lại màu nền khi rê chuột ra
+                    if (navItemPanel != currentSelectedNavItem) {
+                        navItemPanel.setBackground(new Color(42, 63, 84)); // Đổi lại màu nền khi rê chuột ra
+                    }
                 }
             });
 
@@ -163,26 +173,14 @@ public class HomeView extends JPanel {
         }
     }
 
-    private void selectNavItem(String name) {
-        System.out.println(name);
-        Component[] components = navPanel.getComponents();
-        for (Component component : components) {
-            if (component instanceof JPanel) {
-                JPanel navItemPanel = (JPanel) component;
-                JLabel navLabel = (JLabel) navItemPanel.getComponent(1); // Lấy JLabel trong navItemPanel
-
-                System.out.println(navLabel.getText());
-
-                if (navLabel.getText().equals(name)) {
-                    navItemPanel.setBackground(Color.GRAY); // Thiết lập màu nền xám cho navItemPanel đã chọn
-                    cardLayout.show(contentPanel, name); // Chuyển đổi sang trang có tên là 'name'
-                } else {
-                    navItemPanel.setBackground(new Color(42, 63, 84)); // Thiết lập lại màu nền cho các navItemPanel khác
-                }
-            }
+    private void updateNavItemSelection(JPanel selectedNavItemPanel) {
+        if (currentSelectedNavItem != null) {
+            currentSelectedNavItem.setBackground(new Color(42, 63, 84)); // Đặt lại màu nền cho navItemPanel trước đó
         }
-    }
 
+        selectedNavItemPanel.setBackground(Color.GRAY); // Đặt màu nền xám cho navItemPanel được chọn hiện tại
+        currentSelectedNavItem = selectedNavItemPanel; // Cập nhật navItemPanel được chọn hiện tại
+    }
 
     private String getWelcomeMessage() {
         User user = UserSession.getUser();
