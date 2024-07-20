@@ -89,6 +89,11 @@ public class CoursePanel extends JPanel {
             }
         });
 
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (UserSession.getUser() == null || !UserSession.getUser().isAdmin()) {
+            addButton.setVisible(false);
+        }
+
         // Panel cho các nút
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.add(refreshButton);
@@ -121,14 +126,16 @@ public class CoursePanel extends JPanel {
         header.setBackground(new Color(240, 240, 240));
         header.setForeground(Color.BLACK);
 
-//        courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Sửa"));
-//        courseTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer("Xóa"));
-//
-//        courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor("Sửa"));
-//        courseTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor("Xóa"));
-
         courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
         courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
+
+        // Ẩn cột Hành động nếu không phải Admin
+        if (UserSession.getUser() == null || !UserSession.getUser().isAdmin()) {
+            courseTable.removeColumn(courseTable.getColumnModel().getColumn(5));
+        } else {
+            courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+            courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
+        }
 
 
         // Add a JScrollPane with padding around the table
