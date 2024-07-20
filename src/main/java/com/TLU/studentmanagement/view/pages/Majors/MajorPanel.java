@@ -1,9 +1,11 @@
 package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -28,10 +30,26 @@ public class MajorPanel extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout());
 
+        // Set the theme
+        UIManager.put("TitlePane.background", new Color(240, 240, 240));
+        UIManager.put("Button.arc", 10);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("Button.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("TextField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("PasswordField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("ComboBox.padding", new Insets(4, 6, 4, 6));
+        UIManager.put("TitlePane.unifiedBackground", false);
+        UIManager.put("TitlePane.buttonSize", new Dimension(35, 23));
+        UIManager.put("TitlePane.background", new Color(230, 230, 230));
+        UIManager.put("TitlePane.foreground", Color.BLACK);
+
+        // Panel cho tiêu đề và các nút
+        JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Thông tin chuyên ngành", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(UIManager.getColor("Label.foreground")); // Sử dụng màu sắc từ FlatLaf
-        add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
 
         // Tạo bảng với dữ liệu và tiêu đề cột
         majorTableModel = new MajorTableModel();
@@ -61,19 +79,39 @@ public class MajorPanel extends JPanel {
         // Customize headers
         JTableHeader header = majorTable.getTableHeader();
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
-        header.setForeground(UIManager.getColor("TableHeader.foreground"));
-        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40)); // Cập nhật chiều cao của header
-
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(Color.BLACK);
         // Thêm các cột Sửa và Xóa
         majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
-
         // Xử lý các sự kiện nhấn nút
         majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor());
 
-        add(new JScrollPane(majorTable), BorderLayout.CENTER);
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
 
-        addButton = new JButton("Thêm chuyên ngành");
-        addButton.setFocusPainted(false); // Loại bỏ đường viền khi nhấn
+        // Ẩn cột Hành động nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            majorTable.removeColumn(majorTable.getColumnModel().getColumn(2));
+        } else {
+            majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
+            majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor());
+        }
+
+        // Add a JScrollPane with padding around the table
+        JScrollPane scrollPane = new JScrollPane(majorTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  // Add padding to the scroll pane
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Nút Thêm khóa học
+        addButton = new JButton("Thêm khóa học");
+        addButton.setFocusPainted(false);
+        addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setBackground(new Color(88, 86, 214));  // Accent color
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(150, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -84,7 +122,18 @@ public class MajorPanel extends JPanel {
                 }
             }
         });
-        add(addButton, BorderLayout.SOUTH);
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            addButton.setVisible(false);
+        }
+
+        // Panel cho các nút
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.add(addButton);
+
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
     }
 
     private void showAddMajorForm() {
