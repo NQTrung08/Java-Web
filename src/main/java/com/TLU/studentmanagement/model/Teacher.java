@@ -60,8 +60,9 @@ public class Teacher {
                 ", mgv='" + mgv + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
-                ", isGV=" + isGV +
-                '}';
+                ", isGV='" + isGV + '\'' +
+                ", isAdmin='" + isAdmin +
+                "'}";
     }
 
 }
