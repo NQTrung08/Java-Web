@@ -183,13 +183,17 @@ public class TranscriptPanel extends JPanel {
         String studentId = getStudentIdByDisplay(studentDisplay);
         String semesterId = getSemesterIdByDisplay(semesterDisplay);
 
-        Transcript transcript = transcriptController.getTranscriptBySemester(studentId, semesterId);
-        // Implement logic to display transcript details and actions (edit/delete)
+        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
+        if (transcript == null) {
+            JOptionPane.showMessageDialog(null, "No transcript found for the selected student and semester.");
+            return;
+        }
+
         JFrame frame = new JFrame("Transcript Details");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(400, 300);
+        frame.setSize(600, 400);
 
-        JTextArea transcriptDetails = new JTextArea(transcript.toString()); // Customize to show detailed information
+        JTextArea transcriptDetails = new JTextArea(transcript.toString());
         frame.add(new JScrollPane(transcriptDetails), BorderLayout.CENTER);
 
         JPanel actionsPanel = new JPanel();
@@ -218,6 +222,7 @@ public class TranscriptPanel extends JPanel {
 
         frame.setVisible(true);
     }
+
 
     private String getStudentIdByDisplay(String studentDisplay) {
         String msv = studentDisplay.split(" - ")[1]; // Extract msv from display string

@@ -1,8 +1,10 @@
 package main.java.com.TLU.studentmanagement.controller.transcripts;
 
+import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import raven.toast.Notifications;
 
@@ -57,52 +59,44 @@ public class TranscriptController {
         return transcripts;
     }
 
-
-    public Transcript getTranscriptById(String id) {
+    public Transcript getTranscriptById(String transcriptId) {
         try {
-            String response = HttpUtil.sendGet(BASE_URL + "/" + id);
-            JSONObject jsonTranscript = new JSONObject(response);
+            String response = HttpUtil.sendGet("http://localhost:8080/api/transcript/" + transcriptId);
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONObject jsonTranscript = jsonResponse.getJSONObject("data");
+
+            // Parse transcript details
             Transcript transcript = new Transcript();
             transcript.setId(jsonTranscript.getString("_id"));
             transcript.setDeleted(jsonTranscript.getBoolean("deleted"));
+            transcript.setCreatedAt(jsonTranscript.getString("createdAt"));
+            transcript.setUpdatedAt(jsonTranscript.getString("updatedAt"));
 
-            if (jsonTranscript.has("studentId") && !jsonTranscript.isNull("studentId")) {
-                Object studentIdObj = jsonTranscript.get("studentId");
-                if (studentIdObj instanceof JSONObject) {
-                    JSONObject studentIdJson = (JSONObject) studentIdObj;
-                    if (studentIdJson.has("_id")) {
-                        transcript.setStudentId(studentIdJson.getString("_id"));
-                        transcript.setStudentName(studentIdJson.getString("fullname"));
-                    } else {
-                        transcript.setStudentId("");
-                    }
-                } else if (studentIdObj instanceof String) {
-                    transcript.setStudentId((String) studentIdObj);
-                } else {
-                    transcript.setStudentId("");
-                }
-            } else {
-                transcript.setStudentId("");
-            }
+            // Parse student details
+            JSONObject studentJson = jsonTranscript.getJSONObject("student");
+            transcript.setStudentId(studentJson.getString("_id"));
+            transcript.setStudentName(studentJson.getString("fullname"));
 
-            if (jsonTranscript.has("semesterId") && !jsonTranscript.isNull("semesterId")) {
-                Object semesterIdObj = jsonTranscript.get("semesterId");
-                if (semesterIdObj instanceof JSONObject) {
-                    JSONObject semesterIdJson = (JSONObject) semesterIdObj;
-                    if (semesterIdJson.has("_id")) {
-                        transcript.setSemesterId(semesterIdJson.getString("_id"));
-                        transcript.setSemesterName(semesterIdJson.getString("name"));
-                    } else {
-                        transcript.setSemesterId("");
-                    }
-                } else if (semesterIdObj instanceof String) {
-                    transcript.setSemesterId((String) semesterIdObj);
-                } else {
-                    transcript.setSemesterId("");
-                }
-            } else {
-                transcript.setSemesterId("");
+            // Parse semester details
+            JSONObject semesterJson = jsonTranscript.getJSONObject("semester");
+            String semesterName = semesterJson.getString("semester") + " - " + semesterJson.getString("group") + " - Năm học: " + semesterJson.getString("year");
+            transcript.setSemesterId(semesterJson.getString("_id"));
+            transcript.setSemesterName(semesterName);
+
+            // Parse grades
+            JSONArray gradesArray = jsonTranscript.getJSONArray("grades");
+            List<Grade> grades = new ArrayList<>();
+            for (int i = 0; i < gradesArray.length(); i++) {
+                JSONObject gradeJson = gradesArray.getJSONObject(i);
+                Grade grade = new Grade();
+                grade.setCourse(gradeJson.getString("course"));
+                grade.setMidScore(gradeJson.getDouble("midScore"));
+                grade.setFinalScore(gradeJson.getDouble("finalScore"));
+                grade.setAverageScore(gradeJson.getDouble("averageScore"));
+                grade.setStatus(gradeJson.getString("status"));
+                grades.add(grade);
             }
+            transcript.setGrades(grades);
 
             return transcript;
         } catch (Exception e) {
@@ -111,57 +105,23 @@ public class TranscriptController {
         return null;
     }
 
-    public List<Transcript> getTranscriptByStudent(String studentId) {
+    public List<Transcript> getTranscriptByStudentId(String studentId) {
         List<Transcript> transcripts = new ArrayList<>();
         try {
-            String response = HttpUtil.sendGet(BASE_URL + "/student/" + studentId);
+            String response = HttpUtil.sendGet("http://localhost:8080/api/transcript/student/" + studentId);
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonTranscript = jsonArray.getJSONObject(i);
+
                 Transcript transcript = new Transcript();
-                transcript.setId(jsonTranscript.getString("_id"));
-                transcript.setDeleted(jsonTranscript.getBoolean("deleted"));
+                transcript.setCourse(jsonTranscript.getString("course"));
+                transcript.setMidScore(jsonTranscript.getDouble("midScore"));
+                transcript.setFinalScore(jsonTranscript.getDouble("finalScore"));
+                transcript.setAverageScore(jsonTranscript.getDouble("averageScore"));
+                transcript.setStatus(jsonTranscript.getString("status"));
 
-                // Parsing studentId and semesterId as objects
-                if (jsonTranscript.has("studentId") && !jsonTranscript.isNull("studentId")) {
-                    Object studentIdObj = jsonTranscript.get("studentId");
-                    if (studentIdObj instanceof JSONObject) {
-                        JSONObject studentIdJson = (JSONObject) studentIdObj;
-                        if (studentIdJson.has("_id")) {
-                            transcript.setStudentId(studentIdJson.getString("_id"));
-                            transcript.setStudentName(studentIdJson.getString("fullname"));
-                        } else {
-                            transcript.setStudentId("");
-                        }
-                    } else if (studentIdObj instanceof String) {
-                        transcript.setStudentId((String) studentIdObj);
-                    } else {
-                        transcript.setStudentId("");
-                    }
-                } else {
-                    transcript.setStudentId("");
-                }
-
-                if (jsonTranscript.has("semesterId") && !jsonTranscript.isNull("semesterId")) {
-                    Object semesterIdObj = jsonTranscript.get("semesterId");
-                    if (semesterIdObj instanceof JSONObject) {
-                        JSONObject semesterIdJson = (JSONObject) semesterIdObj;
-                        if (semesterIdJson.has("_id")) {
-                            transcript.setSemesterId(semesterIdJson.getString("_id"));
-                            transcript.setSemesterName(semesterIdJson.getString("name"));
-                        } else {
-                            transcript.setSemesterId("");
-                        }
-                    } else if (semesterIdObj instanceof String) {
-                        transcript.setSemesterId((String) semesterIdObj);
-                    } else {
-                        transcript.setSemesterId("");
-                    }
-                } else {
-                    transcript.setSemesterId("");
-                }
                 transcripts.add(transcript);
             }
         } catch (Exception e) {
@@ -170,58 +130,41 @@ public class TranscriptController {
         return transcripts;
     }
 
-    public Transcript getTranscriptBySemester(String studentId, String semesterId) {
+    public Transcript getTranscriptBySemesterStudent(String studentId, String semesterId) {
+        Transcript transcript = null;
         try {
-            String response = HttpUtil.sendGet(BASE_URL + "/student/" + studentId + "/semester/" + semesterId);
-            JSONObject jsonTranscript = new JSONObject(response);
-            Transcript transcript = new Transcript();
-            transcript.setId(jsonTranscript.getString("_id"));
-            transcript.setDeleted(jsonTranscript.getBoolean("deleted"));
+            String response = HttpUtil.sendGet("http://localhost:8080/api/transcript/student/" + studentId + "/semester/" + semesterId);
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
-            if (jsonTranscript.has("studentId") && !jsonTranscript.isNull("studentId")) {
-                Object studentIdObj = jsonTranscript.get("studentId");
-                if (studentIdObj instanceof JSONObject) {
-                    JSONObject studentIdJson = (JSONObject) studentIdObj;
-                    if (studentIdJson.has("_id")) {
-                        transcript.setStudentId(studentIdJson.getString("_id"));
-                        transcript.setStudentName(studentIdJson.getString("fullname"));
-                    } else {
-                        transcript.setStudentId("");
-                    }
-                } else if (studentIdObj instanceof String) {
-                    transcript.setStudentId((String) studentIdObj);
-                } else {
-                    transcript.setStudentId("");
+            if (jsonArray.length() > 0) {
+                JSONObject jsonTranscript = jsonArray.getJSONObject(0);
+
+                transcript = new Transcript();
+                transcript.setId(jsonTranscript.getString("_id"));
+                transcript.setStudentId(studentId);
+                transcript.setSemesterId(semesterId);
+
+                JSONArray gradesArray = jsonTranscript.getJSONArray("grades");
+                List<Grade> grades = new ArrayList<>();
+                for (int i = 0; i < gradesArray.length(); i++) {
+                    JSONObject jsonGrade = gradesArray.getJSONObject(i);
+                    Grade grade = new Grade();
+                    grade.setCourse(jsonGrade.getString("course"));
+                    grade.setMidScore(jsonGrade.getDouble("midScore"));
+                    grade.setFinalScore(jsonGrade.getDouble("finalScore"));
+                    grade.setAverageScore(jsonGrade.getDouble("averageScore"));
+                    grade.setStatus(jsonGrade.getString("status"));
+                    grades.add(grade);
                 }
-            } else {
-                transcript.setStudentId("");
+                transcript.setGrades(grades);
             }
-
-            if (jsonTranscript.has("semesterId") && !jsonTranscript.isNull("semesterId")) {
-                Object semesterIdObj = jsonTranscript.get("semesterId");
-                if (semesterIdObj instanceof JSONObject) {
-                    JSONObject semesterIdJson = (JSONObject) semesterIdObj;
-                    if (semesterIdJson.has("_id")) {
-                        transcript.setSemesterId(semesterIdJson.getString("_id"));
-                        transcript.setSemesterName(semesterIdJson.getString("name"));
-                    } else {
-                        transcript.setSemesterId("");
-                    }
-                } else if (semesterIdObj instanceof String) {
-                    transcript.setSemesterId((String) semesterIdObj);
-                } else {
-                    transcript.setSemesterId("");
-                }
-            } else {
-                transcript.setSemesterId("");
-            }
-
-            return transcript;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return transcript;
     }
+
 
 
     public int createTranscript(Transcript transcript) {
@@ -230,13 +173,13 @@ public class TranscriptController {
             jsonTranscript.put("studentId", transcript.getStudentId());
             jsonTranscript.put("semesterId", transcript.getSemesterId());
 
-            System.out.println("studentId: " + transcript.getStudentId());
-            System.out.println("semesterId: " + transcript.getSemesterId());
-            System.out.println(jsonTranscript.toString());
+//            System.out.println("studentId: " + transcript.getStudentId());
+//            System.out.println("semesterId: " + transcript.getSemesterId());
+//            System.out.println(jsonTranscript.toString());
 
             String response = HttpUtil.sendPost("http://localhost:8080/api/transcript/create", jsonTranscript.toString());
 
-            System.out.println("Rps: " + response);
+//            System.out.println("Rsp: " + response);
 
             // Kiểm tra phản hồi từ server
             if (response == null || response.isEmpty()) {

@@ -124,14 +124,14 @@ public class UserController {
             jsonObj.put("email", user.getEmail());
             jsonObj.put("majorId", user.getMajorId());
 
-            System.out.println(jsonObj);
+//            System.out.println(jsonObj);
 //            System.out.println("MajorId: " + user.getMajorId());
 //            System.out.println("GVCN: " + user.getGvcn());
 
             String response = HttpUtil.sendPost(BASE_URL + "create-user", jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
-            System.out.println("API response: " + responseJson);
+//            System.out.println("API response: " + responseJson);
 
 //            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {

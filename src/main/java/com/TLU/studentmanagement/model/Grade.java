@@ -10,6 +10,24 @@ public class Grade {
     private String status;
     private String transcriptId;
     private String courseId;
+    private String course;
+    private double averageScore;
+
+    public String getCourse() {
+        return course;
+    }
+
+    public void setCourse(String course) {
+        this.course = course;
+    }
+
+    public double getAverageScore() {
+        return averageScore;
+    }
+
+    public void setAverageScore(double averageScore) {
+        this.averageScore = averageScore;
+    }
 
     public Grade() {}
 
