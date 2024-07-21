@@ -4,6 +4,7 @@ import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import raven.toast.Notifications;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class TranscriptController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(transcripts);
+//        System.out.println(transcripts);
         return transcripts;
     }
 
@@ -223,7 +224,7 @@ public class TranscriptController {
     }
 
 
-    public void createTranscript(Transcript transcript) {
+    public int createTranscript(Transcript transcript) {
         try {
             JSONObject jsonTranscript = new JSONObject();
             jsonTranscript.put("studentId", transcript.getStudentId());
@@ -233,11 +234,29 @@ public class TranscriptController {
             System.out.println("semesterId: " + transcript.getSemesterId());
             System.out.println(jsonTranscript.toString());
 
-            HttpUtil.sendPost("http://localhost:8080/api/transcript/create", jsonTranscript.toString());
+            String response = HttpUtil.sendPost("http://localhost:8080/api/transcript/create", jsonTranscript.toString());
+
+            System.out.println("Rps: " + response);
+
+            // Kiểm tra phản hồi từ server
+            if (response == null || response.isEmpty()) {
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Không nhận được phản hồi từ server.");
+                return 0; // Lỗi do không có phản hồi
+            }
+
+            JSONObject jsonResponse = new JSONObject(response);
+            if (jsonResponse.has("code") && jsonResponse.getInt("code") == 400 && jsonResponse.getString("message").equals("Transcript already exists")) {
+                return -1; // Trùng lặp
+            }
+
+            return 1; // Thành công
         } catch (Exception e) {
             e.printStackTrace();
+            return 0; // Lỗi khác
         }
     }
+
+
 
     public void updateTranscript(String transcriptId, Transcript transcript) {
         try {

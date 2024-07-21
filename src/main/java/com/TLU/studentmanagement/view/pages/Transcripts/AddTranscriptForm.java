@@ -91,18 +91,25 @@ public class AddTranscriptForm extends JDialog {
 
             if (studentId != null && semesterId != null) {
                 Transcript newTranscript = new Transcript(studentId, semesterId);
-                transcriptController.createTranscript(newTranscript);
-                parentPanel.loadTranscripts(); // Reload transcripts in parent panel
-                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm bảng điểm thành công.");
-                dispose(); // Close the form
+                int result = transcriptController.createTranscript(newTranscript);
+
+                if (result == 1) {
+                    parentPanel.loadTranscripts(); // Tải lại danh sách bảng điểm trong panel cha
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm bảng điểm thành công.");
+                    dispose(); // Đóng form
+                } else if (result == -1) {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Bảng điểm của sinh viên đã tồn tại.");
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể thêm bảng điểm. Vui lòng thử lại sau.");
+                }
             } else {
-                Notifications.getInstance().show(Notifications.Type.ERROR, "Bảng điểm của sinh viên đã tồn tại.");
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Dữ liệu không hợp lệ.");
             }
         } catch (Exception e) {
-//            e.printStackTrace();
             Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể thêm bảng điểm. Vui lòng thử lại sau.");
         }
     }
+
 
     private String getStudentIdByDisplay(String displayText) {
         for (User student : students) {
