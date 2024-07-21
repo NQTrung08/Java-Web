@@ -1,5 +1,7 @@
 package main.java.com.TLU.studentmanagement.model;
 
+import java.util.List;
+
 public class User {
     private String id;
     private String fullname;
@@ -11,6 +13,24 @@ public class User {
     private String email;
     private String majorId;
     private String major;
+    private List<Course> courses;
+    private List<Semester> semesters;
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
+
+    public List<Semester> getSemesters() {
+        return semesters;
+    }
+
+    public void setSemesters(List<Semester> semesters) {
+        this.semesters = semesters;
+    }
 
     public String getGvcnName() {
         return gvcnName;
