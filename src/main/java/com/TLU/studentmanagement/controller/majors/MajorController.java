@@ -28,6 +28,20 @@ public class MajorController {
         return majors;
     }
 
+    public static Major getMajorById(String id) throws Exception {
+        String apiUrl = "http://localhost:8080/api/major/get/" + id; // Cập nhật URL API
+        String response = HttpUtil.sendGet(apiUrl);
+        JSONObject jsonResponse = new JSONObject(response);
+        JSONObject majorObject = jsonResponse.getJSONObject("data");
+
+        Major major = new Major();
+        major.setId(majorObject.getString("_id"));
+        major.setName(majorObject.getString("name"));
+        major.setCode(majorObject.getString("code"));
+
+        return major;
+    }
+
     public static void createMajor(String name, String code) throws Exception {
         JSONObject jsonInput = new JSONObject();
         jsonInput.put("name", name);

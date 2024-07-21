@@ -40,7 +40,7 @@ public class UserController {
                 user.setGender(jsonObj.optString("gender"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
-//                user.setMajorId(jsonObj.optString("major"));
+//                user.setMajorId(jsonObj.optString("majorId"));
                 user.setAdmin(jsonObj.getBoolean("isAdmin"));
                 user.setGv(jsonObj.optBoolean("isGV"));
                 user.setDeleted(jsonObj.getBoolean("deleted"));

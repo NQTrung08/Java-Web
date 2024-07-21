@@ -141,25 +141,25 @@ public class PersonalInfoPanel extends JPanel {
                 personalInfoTable.setValueAt(user.getFullName(), 1, 1);
                 personalInfoTable.setValueAt(user.getGender() != null ? user.getGender() : "N/A", 2, 1);
                 personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có trong lớp User
-                personalInfoTable.setValueAt("N/A", 4, 1);  // Lớp sinh viên không có trong lớp User
-                personalInfoTable.setValueAt(user.getMajorId() != null ? user.getMajorId() : "N/A", 5, 1);
+                personalInfoTable.setValueAt(user.getClassName(), 4, 1);  // Lớp sinh viên không có trong lớp User
+                personalInfoTable.setValueAt(user.getMajorName() != null ? user.getMajorName() : "N/A", 5, 1);
                 personalInfoTable.setValueAt(user.getYear() != null ? user.getYear() : "N/A", 6, 1);
-                personalInfoTable.setValueAt("N/A", 7, 1);  // Ngày sinh không có trong lớp User
+                personalInfoTable.setValueAt(user.getDob() != null ? user.getDob() : "N/A", 7, 1);  // Ngày sinh không có trong lớp User
                 personalInfoTable.setValueAt(user.isAdmin() ? "Admin" : "Student", 8, 1);
 
-                contactInfoTable.setValueAt("N/A", 0, 1);  // Điện thoại không có trong lớp User
+                contactInfoTable.setValueAt(user.getPhone() != null ? user.getPhone() : "N/A", 0, 1);  // Điện thoại không có trong lớp User
                 contactInfoTable.setValueAt(user.getEmail() != null ? user.getEmail() : "N/A", 1, 1);
-                contactInfoTable.setValueAt("N/A", 2, 1);  // Quốc gia không có trong lớp User
-                contactInfoTable.setValueAt("N/A", 3, 1);  // Địa chỉ không có trong lớp User
+                contactInfoTable.setValueAt(user.getCountry() != null ? user.getCountry() : "N/A", 2, 1);  // Quốc gia không có trong lớp User
+                contactInfoTable.setValueAt(user.getAddress() != null ? user.getAddress() : "N/A", 3, 1);  // Địa chỉ không có trong lớp User
             } else if (teacher != null) {
                 personalInfoTable.setValueAt(teacher.getMgv(), 0, 1);
                 personalInfoTable.setValueAt(teacher.getFullName(), 1, 1);
                 personalInfoTable.setValueAt("N/A", 2, 1);  // Giới tính không có cho giáo viên
                 personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có cho giáo viên
-                personalInfoTable.setValueAt("N/A", 4, 1);  // Lớp sinh viên không có cho giáo viên
-//                personalInfoTable.setValueAt(teacher.getMajor() != null ? teacher.getMajor() : "N/A", 5, 1);
-//                personalInfoTable.setValueAt(teacher.getYear() != null ? teacher.getYear() : "N/A", 6, 1);
-//                personalInfoTable.setValueAt(teacher.getDob() != null ? teacher.getDob() : "N/A", 7, 1);
+                personalInfoTable.setValueAt("N/A", 4, 1);
+                personalInfoTable.setValueAt( "N/A", 5, 1);
+                personalInfoTable.setValueAt("N/A", 6, 1);
+                personalInfoTable.setValueAt("N/A", 7, 1);
                 personalInfoTable.setValueAt(teacher.isGV() ? "Teacher" : "Unknown", 8, 1);
 
                 contactInfoTable.setValueAt("N/A", 0, 1);  // Điện thoại không có cho giáo viên
