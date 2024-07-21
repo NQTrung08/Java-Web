@@ -5,6 +5,7 @@ import main.java.com.TLU.studentmanagement.controller.semesters.SemesterControll
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.util.HttpUtil;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,12 +13,18 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class ScoreReportPanel extends JPanel {
 
     private JComboBox<String> semesterComboBox;
     private JComboBox<String> programComboBox;
+    private DefaultTableModel model;
+    private JTable table;
 
     public ScoreReportPanel() {
         initUI();
@@ -61,9 +68,9 @@ public class ScoreReportPanel extends JPanel {
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Thêm padding cho content
 
-        JTable table = new JTable();
-        DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(new String[]{"STT", "Mã môn học", "Tên môn học", "Số TC", "Điểm hệ 10", "Điểm hệ 4", "Điểm chữ", "Kết quả"});
+        table = new JTable();
+        model = new DefaultTableModel();
+        model.setColumnIdentifiers(new String[]{"STT", "Mã môn học", "Tên môn học", "Số TC", "Điểm quá trình", "Điểm cuối kỳ", "Điểm tổng kết", "Kết quả"});
         table.setModel(model);
 
         // Custom renderer for table header
@@ -118,11 +125,20 @@ public class ScoreReportPanel extends JPanel {
         add(headerPanel, BorderLayout.NORTH);
         add(contentPanel, BorderLayout.CENTER);
 
-        // Add some sample data to the table
-        for (int i = 1; i <= 10; i++) {
-            model.addRow(new Object[]{i, "Mã môn học " + i, "Tên môn học " + i, (int) (Math.random() * 4) + 2,
-                    (Math.random() * 10), (Math.random() * 4), "A", "Đạt", "Ghi chú", "Chi tiết"});
-        }
+        // Add action listeners for JComboBox
+        semesterComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fetchTranscriptData();
+            }
+        });
+
+        programComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fetchTranscriptData();
+            }
+        });
     }
 
     private void loadSemesterData() {
@@ -163,7 +179,7 @@ public class ScoreReportPanel extends JPanel {
                     if (user != null) {
                         // Thêm thông tin chương trình đào tạo vào JComboBox
                         programComboBox.addItem(user.getMajorName());
-                        System.out.println(user.getMajorId());
+//                        System.out.println(user.getMajorId());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -183,4 +199,101 @@ public class ScoreReportPanel extends JPanel {
         worker.execute();
     }
 
+    private void fetchTranscriptData() {
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try {
+                    // Lấy thông tin học kỳ được chọn
+                    String selectedSemester = (String) semesterComboBox.getSelectedItem();
+                    String semesterId = "Tất cả".equals(selectedSemester) ? null : getSemesterIdFromComboBox(selectedSemester);
+
+                    // Lấy ID người dùng từ UserSession
+                    User user = UserSession.getUser();
+                    String userId = user != null ? user.getId() : null;
+
+                    if (userId != null) {
+                        // Gọi API để lấy dữ liệu điểm
+                        String url = "http://localhost:8080/api/transcript/student/" + userId;
+                        if (semesterId != null) {
+                            url += "/semester/" + semesterId;
+                        }
+
+                        String response = HttpUtil.sendGet(url);
+                        JSONObject jsonResponse = new JSONObject(response);
+                        JSONArray transcriptData = jsonResponse.getJSONArray("data");
+
+                        // Clear existing rows
+                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+                        model.setRowCount(0);
+
+                        // Thêm dữ liệu mới vào bảng
+                        for (int i = 0; i < transcriptData.length(); i++) {
+                            JSONObject item = transcriptData.getJSONObject(i);
+                            model.addRow(new Object[]{
+                                    i + 1,
+                                    item.getString("courseId"),
+                                    item.getString("courseName"),
+                                    item.getInt("credit"),
+                                    item.getFloat("midScore"),
+                                    item.getFloat("finalScore"),
+                                    item.getDouble("averageScore"),
+                                    item.getString("status")
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
+    }
+
+
+    private String getSemesterIdFromComboBox(String semesterComboBoxItem) {
+        // Parse the semester ID from the comboBoxItem string
+        // Example implementation, you need to adapt it based on your actual data format
+        // Assuming the comboBoxItem format is "Semester - Group - Year"
+        // and you need to find the ID in the semester data
+        for (int i = 0; i < semesterComboBox.getItemCount(); i++) {
+            String item = semesterComboBox.getItemAt(i);
+            if (item.equals(semesterComboBoxItem)) {
+                // Fetch the corresponding ID for the selected semester
+                // You need to implement this based on how you map the semester items to IDs
+                return getSemesterId(item);
+            }
+        }
+        return null; // Return null if not found
+    }
+
+    private String getSemesterId(String semesterDescription) {
+        // This method should return the semester ID based on the description
+        // Implement this method based on your data source for semesters
+        // Example implementation might involve looking up from a map or a list
+        // This is a placeholder example
+        try {
+            List<Semester> semesters = SemesterController.getAllSemesters();
+            for (Semester semester : semesters) {
+                String description = semester.getSemester() + " - " + semester.getGroup() + " - " + semester.getYear();
+                if (description.equals(semesterDescription)) {
+                    return semester.getId(); // Assuming Semester class has getId() method
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return semesterDescription;
+    }
 }
