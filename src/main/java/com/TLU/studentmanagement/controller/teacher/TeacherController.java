@@ -28,6 +28,8 @@ public class TeacherController {
                 teacher.setId(teacherObject.getString("_id"));
                 teacher.setFullName(teacherObject.optString("fullname", "n/a"));
                 teacher.setEmail(teacherObject.optString("email", "n/a"));
+                teacher.setAdmin(teacherObject.getBoolean("isAdmin"));
+                teacher.setGV(teacherObject.optBoolean("isGV"));
                 // Add other properties as needed
                 teachers.add(teacher);
             }

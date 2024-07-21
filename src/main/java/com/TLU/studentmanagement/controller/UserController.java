@@ -3,10 +3,14 @@ package main.java.com.TLU.studentmanagement.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
+import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import raven.toast.Notifications;
+
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +22,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UserController {
 
@@ -40,7 +46,7 @@ public class UserController {
                 user.setGender(jsonObj.optString("gender"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
-//                user.setMajorId(jsonObj.optString("major"));
+//                user.setMajorId(jsonObj.optString("majorId"));
                 user.setAdmin(jsonObj.getBoolean("isAdmin"));
                 user.setGv(jsonObj.optBoolean("isGV"));
                 user.setDeleted(jsonObj.getBoolean("deleted"));
@@ -85,19 +91,6 @@ public class UserController {
                     user.setGvcn(""); // Gán giá trị mặc định là rỗng nếu majorId không tồn tại
                 }
 
-////                Lay thong tin major tuwf jsonObj
-//                JSONObject majorObj = jsonObj.optJSONObject("majorId");
-//                if(majorObj != null) {
-//                    String majorName = majorObj.optString("name");
-//                    user.setMajor(majorName);
-//                }
-//
-//                // Lấy thông tin gvcn từ đối tượng jsonObj
-//                JSONObject gvcnObj = jsonObj.optJSONObject("gvcn");
-//                if (gvcnObj != null) {
-//                    String gvcnFullName = gvcnObj.optString("fullname");
-//                    user.setGvcn(gvcnFullName);
-//                }
 
                 users.add(user);
             }
@@ -110,6 +103,53 @@ public class UserController {
         }
         return users;
     }
+
+    public static User fetchUserDetails(String userId) throws Exception {
+        // Tạo đối tượng User để lưu thông tin người dùng
+        User user = new User();
+
+        // Gửi yêu cầu GET đến API để lấy dữ liệu người dùng
+        String response = HttpUtil.sendGet(BASE_URL + userId);
+        JSONObject jsonResponse = new JSONObject(response);
+        JSONObject jsonObj = jsonResponse.getJSONObject("data"); // Lấy đối tượng dữ liệu chính
+
+        // Kiểm tra xem đối tượng có id trùng với userId không
+        if (jsonObj.optString("_id").equals(userId)) {
+            user.setId(jsonObj.optString("_id"));
+            user.setMsv(jsonObj.optString("msv", "N/A"));
+            user.setFullName(jsonObj.optString("fullname", "N/A"));
+            user.setGender(jsonObj.optString("gender", "N/A"));
+
+            // Lấy thông tin mã ngành từ đối tượng
+            JSONObject majorObject = jsonObj.optJSONObject("majorId");
+            if (majorObject != null) {
+                user.setMajorId(majorObject.optString("_id", "N/A"));
+                user.setMajorName(majorObject.optString("name", "N/A"));
+            } else {
+                user.setMajorId("N/A");
+            }
+
+            user.setYear(jsonObj.optString("year", "N/A"));
+            user.setClassName(jsonObj.optString("class", "N/A"));
+            user.setAdmin(jsonObj.optBoolean("isAdmin", false));
+            user.setGvcn(jsonObj.optString("gvcn", "N/A"));
+            user.setGvcnName(jsonObj.optString("gvcnName", "N/A"));
+            user.setDeleted(jsonObj.optBoolean("deleted", false));
+            user.setGv(jsonObj.optBoolean("isGV", false));
+            user.setEmail(jsonObj.optString("email", "N/A"));
+            user.setDob(jsonObj.optString("dob", "N/A"));
+            user.setPhone(jsonObj.optString("phone", "N/A"));
+            user.setCountry(jsonObj.optString("country", "N/A"));
+            user.setAddress(jsonObj.optString("address", "N/A"));
+        } else {
+            throw new Exception("User ID không khớp với dữ liệu");
+        }
+
+        // Trả về đối tượng User đã được cập nhật thông tin
+        return user;
+    }
+
+
 
 
     public static void createUser(User user) {
@@ -124,14 +164,14 @@ public class UserController {
             jsonObj.put("email", user.getEmail());
             jsonObj.put("majorId", user.getMajorId());
 
-            System.out.println(jsonObj);
+//            System.out.println(jsonObj);
 //            System.out.println("MajorId: " + user.getMajorId());
 //            System.out.println("GVCN: " + user.getGvcn());
 
             String response = HttpUtil.sendPost(BASE_URL + "create-user", jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
-            System.out.println("API response: " + responseJson);
+//            System.out.println("API response: " + responseJson);
 
 //            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {
@@ -198,86 +238,44 @@ public class UserController {
         }
     }
 
-//    public List<String> getAllTeachers() {
-//        List<String> teachers = new ArrayList<>();
-//        try {
-//            String response = HttpUtil.sendGet("http://localhost:8080/api/teacher/getAll");
-//            JSONObject jsonResponse = new JSONObject(response);
-//            JSONArray jsonArray = jsonResponse.getJSONArray("data");
-//
-//            for (int i = 0; i < jsonArray.length(); i++) {
-//                JSONObject jsonObj = jsonArray.getJSONObject(i);
-//                teachers.add(jsonObj.getString("fullname"));
-//            }
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách giáo viên: " + e.getMessage());
-//        }
-//        return teachers;
-//    }
-//
-//    public List<String> getAllMajors() {
-//        List<String> majors = new ArrayList<>();
-//        try {
-//            String response = HttpUtil.sendGet("http://localhost:8080/api/major/getAll");
-//            JSONObject jsonResponse = new JSONObject(response);
-//            JSONArray jsonArray = jsonResponse.getJSONArray("data");
-//
-//            for (int i = 0; i < jsonArray.length(); i++) {
-//                JSONObject jsonObj = jsonArray.getJSONObject(i);
-//                majors.add(jsonObj.getString("name"));
-//            }
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(null, "Lỗi khi phân tích dữ liệu JSON: " + e.getMessage());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(null, "Lỗi khi tải danh sách chuyên ngành: " + e.getMessage());
-//        }
-//        return majors;
-//    }
+    public static boolean updateUserInformation(String fullName, String email, String phone, String address, String dob, String gender) {
+        try {
+            // Get user ID from the session
+            String userId = UserSession.getUser().getId();
 
-//    public List<User> getAllTeacher() {
-//        List<User> teachers = new ArrayList<>();
-//        try {
-//            String response = HttpUtil.sendGet("http://localhost:8080/api/user/getAll");
-//
-//            ObjectMapper mapper = new ObjectMapper();
-//            JsonNode node = mapper.readTree(response).get("data");
-//
-//            for (JsonNode objNode : node) {
-//                if (objNode.has("isGV") && objNode.get("isGV").asBoolean()) {
-//                    User teacher = mapper.treeToValue(objNode, User.class);
-//                    teachers.add(teacher);
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return teachers;
-//    }
-//
-//    public List<String[]> getAllMajor() {
-//        List<String[]> majors = new ArrayList<>();
-//        try {
-//            String response = HttpUtil.sendGet("http://localhost:8080/api/majors/getAll");
-//
-//            ObjectMapper mapper = new ObjectMapper();
-//            JsonNode node = mapper.readTree(response).get("data");
-//
-//            for (JsonNode objNode : node) {
-//                String id = objNode.get("_id").asText();
-//                String name = objNode.get("name").asText();
-//                majors.add(new String[]{id, name});
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return majors;
-//    }
+            // Prepare data for the request
+            JSONObject requestData = new JSONObject();
+            requestData.put("fullname", fullName);
+            requestData.put("email", email);
+            requestData.put("phone", phone);
+            requestData.put("address", address);
+            requestData.put("dob", dob);
+            requestData.put("gender", gender);
+
+            // Make the API call
+            String apiUrl = BASE_URL + "updateProfile/" + userId; // Use BASE_URL to form the complete URL
+            String response = HttpUtil.sendPut(apiUrl, requestData.toString()); // Use sendPut for update requests
+
+            // Process response
+            JSONObject jsonResponse = new JSONObject(response);
+            String message = jsonResponse.getString("message");
+
+//            JOptionPane.showMessageDialog(null, message, "Thông báo", JOptionPane.INFORMATION_MESSAGE); // Use null for parentComponent
+            Notifications.getInstance().show(Notifications.Type.SUCCESS, message);
+            // Return true if the update was successful
+            return jsonResponse.getString("message").equals("Update success");
+
+        } catch (JSONException e) {
+            Logger.getLogger(UserController.class.getName()).log(Level.SEVERE, null, e);
+            JOptionPane.showMessageDialog(null, "Cập nhật thông tin không thành công: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return false;
+        } catch (Exception e) {
+            Logger.getLogger(UserController.class.getName()).log(Level.SEVERE, null, e);
+            JOptionPane.showMessageDialog(null, "Lỗi khi cập nhật thông tin người dùng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
 
     public static List<User> searchStudents(String keyword) {
         List<User> students = new ArrayList<>();
@@ -301,7 +299,15 @@ public class UserController {
                 user.setYear(jsonObj.optString("year"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
-                user.setMajorId(jsonObj.optString("majorId"));
+                // Lấy majorId từ đối tượng JSON
+                JSONObject majorIdObj = jsonObj.optJSONObject("majorId");
+                if (majorIdObj != null) {
+                    user.setMajorId(majorIdObj.optString("_id"));
+                    // Nếu bạn cũng muốn lấy tên của chuyên ngành, có thể thêm như sau:
+                    String majorName = majorIdObj.optString("name");
+                    // Nếu bạn cần tên chuyên ngành, bạn có thể lưu nó vào một thuộc tính khác hoặc sử dụng theo cách khác.
+                    user.setMajorName(majorName); // Ví dụ: nếu có thuộc tính này trong User class
+                }
                 user.setGvcn(jsonObj.optString("gvcn"));
                 students.add(user);
             }
@@ -316,4 +322,6 @@ public class UserController {
 
         return students;
     }
+
+
 }

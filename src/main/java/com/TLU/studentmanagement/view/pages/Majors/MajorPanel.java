@@ -1,9 +1,11 @@
 package main.java.com.TLU.studentmanagement.view.pages.Majors;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -28,10 +30,26 @@ public class MajorPanel extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout());
 
+        // Set the theme
+        UIManager.put("TitlePane.background", new Color(240, 240, 240));
+        UIManager.put("Button.arc", 10);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("Button.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("TextField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("PasswordField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("ComboBox.padding", new Insets(4, 6, 4, 6));
+        UIManager.put("TitlePane.unifiedBackground", false);
+        UIManager.put("TitlePane.buttonSize", new Dimension(35, 23));
+        UIManager.put("TitlePane.background", new Color(230, 230, 230));
+        UIManager.put("TitlePane.foreground", Color.BLACK);
+
+        // Panel cho tiêu đề và các nút
+        JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Thông tin chuyên ngành", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(UIManager.getColor("Label.foreground")); // Sử dụng màu sắc từ FlatLaf
-        add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
 
         // Tạo bảng với dữ liệu và tiêu đề cột
         majorTableModel = new MajorTableModel();
@@ -61,21 +79,39 @@ public class MajorPanel extends JPanel {
         // Customize headers
         JTableHeader header = majorTable.getTableHeader();
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
-        header.setForeground(UIManager.getColor("TableHeader.foreground"));
-        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40)); // Cập nhật chiều cao của header
-
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(Color.BLACK);
         // Thêm các cột Sửa và Xóa
-        majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer("Sửa"));
-        majorTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Xóa"));
-
+        majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
         // Xử lý các sự kiện nhấn nút
-        majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor("Sửa"));
-        majorTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor("Xóa"));
+        majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor());
 
-        add(new JScrollPane(majorTable), BorderLayout.CENTER);
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
 
-        addButton = new JButton("Thêm chuyên ngành");
-        addButton.setFocusPainted(false); // Loại bỏ đường viền khi nhấn
+        // Ẩn cột Hành động nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            majorTable.removeColumn(majorTable.getColumnModel().getColumn(2));
+        } else {
+            majorTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
+            majorTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditor());
+        }
+
+        // Add a JScrollPane with padding around the table
+        JScrollPane scrollPane = new JScrollPane(majorTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  // Add padding to the scroll pane
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Nút Thêm khóa học
+        addButton = new JButton("Thêm khóa học");
+        addButton.setFocusPainted(false);
+        addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setBackground(new Color(88, 86, 214));  // Accent color
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(150, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -86,7 +122,18 @@ public class MajorPanel extends JPanel {
                 }
             }
         });
-        add(addButton, BorderLayout.SOUTH);
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            addButton.setVisible(false);
+        }
+
+        // Panel cho các nút
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.add(addButton);
+
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
     }
 
     private void showAddMajorForm() {
@@ -167,7 +214,7 @@ public class MajorPanel extends JPanel {
 
     private class MajorTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"Tên chuyên ngành", "Mã chuyên ngành", "Hành động", ""};
+        private final String[] columnNames = {"Tên chuyên ngành", "Mã chuyên ngành", "Hành động"};
         private List<Major> majors = new ArrayList<>();
 
         public void setMajors(List<Major> majors) {
@@ -194,9 +241,7 @@ public class MajorPanel extends JPanel {
                 case 1:
                     return major.getCode();
                 case 2:
-                    return "Sửa";
-                case 3:
-                    return "Xóa";
+                    return "Hành động";
                 default:
                     throw new IllegalArgumentException("Invalid column index");
             }
@@ -209,72 +254,105 @@ public class MajorPanel extends JPanel {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnIndex == 2 || columnIndex == 3; // Chỉ cột Sửa và Xóa mới có thể chỉnh sửa
+            return columnIndex == 2; // Chỉ cột Hành động mới có thể chỉnh sửa
         }
     }
 
     private class ButtonRenderer extends JButton implements TableCellRenderer {
-        private final String buttonType;
+        private final JButton editButton;
+        private final JButton deleteButton;
 
-        public ButtonRenderer(String buttonType) {
-            this.buttonType = buttonType;
-            setText(buttonType);
-            setFont(getFont().deriveFont(Font.BOLD));
-            setFocusPainted(false);
-            setForeground(UIManager.getColor("Button.foreground"));
-            setBackground(UIManager.getColor("Button.background"));
-            setBorder(BorderFactory.createLineBorder(UIManager.getColor("Button.borderColor")));
+        public ButtonRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+
+            editButton = new JButton("Sửa");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton = new JButton("Xóa");
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            add(editButton);
+            add(deleteButton);
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            if (isSelected) {
-                setBackground(UIManager.getColor("Table.selectionBackground"));
-                setForeground(UIManager.getColor("Table.selectionForeground"));
-            } else {
-                setBackground(UIManager.getColor("Button.background"));
-                setForeground(UIManager.getColor("Button.foreground"));
-            }
             return this;
         }
     }
 
     private class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton button;
+        private final JButton editButton;
+        private final JButton deleteButton;
         private Major currentMajor;
 
-        public ButtonEditor(String buttonType) {
-            button = new JButton(buttonType);
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+        public ButtonEditor() {
+            editButton = new JButton("Sửa");
+            deleteButton = new JButton("Xóa");
+
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            editButton.addActionListener(e -> {
                     int row = majorTable.getSelectedRow();
                     if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
                         if (row != -1) {
                             currentMajor = majorTableModel.majors.get(row);
-                            if ("Sửa".equals(buttonType)) {
-                                showUpdateMajorForm(currentMajor);
-                            } else if ("Xóa".equals(buttonType)) {
-                                deleteMajor(currentMajor);
-                            }
+                            showUpdateMajorForm(currentMajor);
                         }
-                        fireEditingStopped();
                     } else {
                         Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                     }
+            });
+
+            deleteButton.addActionListener(e -> {
+                int row = majorTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentMajor = majorTableModel.majors.get(row);
+                        deleteMajor(currentMajor);
+                    }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             });
+
+
+
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
+            return new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)) {{
+                add(editButton);
+                add(deleteButton);
+            }};
         }
 
         @Override
         public Object getCellEditorValue() {
-            return button.getText();
+            return "Hành động";
         }
 
         @Override

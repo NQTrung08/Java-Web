@@ -67,6 +67,7 @@ public class CoursePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 getAllCourses();
                 getAllMajors();  // Refresh the list of majors
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
             }
         });
 
@@ -88,6 +89,16 @@ public class CoursePanel extends JPanel {
                 }
             }
         });
+
+
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            addButton.setVisible(false);
+        }
 
         // Panel cho các nút
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
@@ -121,11 +132,17 @@ public class CoursePanel extends JPanel {
         header.setBackground(new Color(240, 240, 240));
         header.setForeground(Color.BLACK);
 
-        courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Sửa"));
-        courseTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer("Xóa"));
+        courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+        courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
 
-        courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor("Sửa"));
-        courseTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor("Xóa"));
+        // Ẩn cột Hành động nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            courseTable.removeColumn(courseTable.getColumnModel().getColumn(5));
+        } else {
+            courseTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+            courseTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
+        }
+
 
         // Add a JScrollPane with padding around the table
         JScrollPane scrollPane = new JScrollPane(courseTable);
@@ -177,7 +194,7 @@ public class CoursePanel extends JPanel {
 
     private class CourseTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ", "Chuyên ngành", "Hành động", ""};
+        private final String[] columnNames = {"STT", "Tên", "Mã", "Số tín chỉ", "Chuyên ngành", "Hành động"};
         private List<Course> courses = new ArrayList<>();
 
         public void setCourses(List<Course> courses) {
@@ -217,9 +234,7 @@ public class CoursePanel extends JPanel {
                 case 4:
                     return majorName;
                 case 5:
-                    return "Sửa";
-                case 6:
-                    return "Xóa";
+                    return "Hành động";
                 default:
                     throw new IllegalArgumentException("Invalid column index");
             }
@@ -232,80 +247,103 @@ public class CoursePanel extends JPanel {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnIndex == 5 || columnIndex == 6;
+            return columnIndex == 5; // Only the action column is editable
         }
     }
 
-    private class ButtonRenderer extends JButton implements TableCellRenderer {
-        private final String buttonType;
 
-        public ButtonRenderer(String buttonType) {
-            this.buttonType = buttonType;
-            setText(buttonType);
-            setFont(new Font("Arial", Font.BOLD, 14));
-            setForeground(Color.WHITE);
-            setFocusPainted(false);
-            setOpaque(true);
-            setBorderPainted(false);
-            setBackground(new Color(87, 87, 166));  // Accent color
+    private class ButtonRenderer extends JPanel implements TableCellRenderer {
+        private final JButton editButton;
+        private final JButton deleteButton;
+
+        public ButtonRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+
+            editButton = new JButton("Sửa");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton = new JButton("Xóa");
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            add(editButton);
+            add(deleteButton);
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-                setForeground(table.getSelectionForeground());
-            } else {
-                setBackground(new Color(103, 102, 166));  // Accent color
-                setForeground(Color.WHITE);
-            }
             return this;
         }
     }
 
     private class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton button;
+        private final JButton editButton;
+        private final JButton deleteButton;
         private Course currentCourse;
 
-        public ButtonEditor(String buttonType) {
-            button = new JButton(buttonType);
-            button.setFont(new Font("Arial", Font.BOLD, 14));
-            button.setForeground(Color.WHITE);
-            button.setFocusPainted(false);
-            button.setOpaque(true);
-            button.setBorderPainted(false);
-            button.setBackground(new Color(88, 86, 214));  // Accent color
+        public ButtonEditor() {
+            editButton = new JButton("Sửa");
+            deleteButton = new JButton("Xóa");
 
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int row = courseTable.getSelectedRow();
-                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
-                        if (row != -1) {
-                            currentCourse = courseTableModel.courses.get(row);
-                            if ("Sửa".equals(buttonType)) {
-                                UpdateCourseForm.showUpdateCourseForm(currentCourse, CoursePanel.this, majors);
-                            } else if ("Xóa".equals(buttonType)) {
-                                deleteCourse(currentCourse);
-                            }
-                        }
-                        fireEditingStopped();
-                    } else {
-                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            editButton.addActionListener(e -> {
+                int row = courseTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentCourse = courseTableModel.courses.get(row);
+                        UpdateCourseForm.showUpdateCourseForm(currentCourse, CoursePanel.this, majors);
                     }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+                }
+            });
+
+            deleteButton.addActionListener(e -> {
+                int row = courseTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentCourse = courseTableModel.courses.get(row);
+                        deleteCourse(currentCourse);
+                    }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             });
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
+            return new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)) {{
+                add(editButton);
+                add(deleteButton);
+            }};
         }
 
         @Override
         public Object getCellEditorValue() {
-            return button.getText();
+            return "Hành động";
         }
 
         @Override
@@ -314,4 +352,5 @@ public class CoursePanel extends JPanel {
             return true;
         }
     }
+
 }

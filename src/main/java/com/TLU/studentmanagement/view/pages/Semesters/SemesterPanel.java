@@ -1,9 +1,11 @@
 package main.java.com.TLU.studentmanagement.view.pages.Semesters;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import main.java.com.TLU.studentmanagement.controller.semesters.SemesterController;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
+
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -28,9 +30,25 @@ public class SemesterPanel extends JPanel {
     private void initUI() {
         setLayout(new BorderLayout());
 
+        // Set the theme
+        UIManager.put("TitlePane.background", new Color(240, 240, 240));
+        UIManager.put("Button.arc", 10);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("Button.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("TextField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("PasswordField.margin", new Insets(4, 6, 4, 6));
+        UIManager.put("ComboBox.padding", new Insets(4, 6, 4, 6));
+        UIManager.put("TitlePane.unifiedBackground", false);
+        UIManager.put("TitlePane.buttonSize", new Dimension(35, 23));
+        UIManager.put("TitlePane.background", new Color(230, 230, 230));
+        UIManager.put("TitlePane.foreground", Color.BLACK);
+
+        // Panel cho tiêu đề và các nút
+        JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Thông tin học kỳ", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
 
         semesterTableModel = new SemesterTableModel();
         semesterTable = new JTable(semesterTableModel);
@@ -52,17 +70,36 @@ public class SemesterPanel extends JPanel {
         JTableHeader header = semesterTable.getTableHeader();
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18));
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(Color.BLACK);
 
-        semesterTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Sửa"));
-        semesterTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer("Xóa"));
+        semesterTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+        semesterTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor());
 
-        semesterTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor("Sửa"));
-        semesterTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor("Xóa"));
+        // Ẩn cột Hành động nếu không phải Admin
 
-        add(new JScrollPane(semesterTable), BorderLayout.CENTER);
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacher = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
 
-        addButton = new JButton("Thêm học kỳ");
+        if (!isAdmin && !isTeacher)  {
+            semesterTable.removeColumn(semesterTable.getColumnModel().getColumn(3));
+        } else {
+            semesterTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+            semesterTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor());
+
+        }
+
+
+
+
+        addButton = new JButton("Thêm khóa học");
         addButton.setFocusPainted(false);
+        addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setBackground(new Color(88, 86, 214));  // Accent color
+        addButton.setForeground(Color.WHITE);
+        addButton.setPreferredSize(new Dimension(150, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -73,7 +110,24 @@ public class SemesterPanel extends JPanel {
                 }
             }
         });
-        add(addButton, BorderLayout.SOUTH);
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacher) {
+            addButton.setVisible(false);
+        }
+
+        // Panel cho các nút
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+//        buttonPanel.add(refreshButton);
+        buttonPanel.add(addButton);
+
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
+
+        // Add a JScrollPane with padding around the table
+        JScrollPane scrollPane = new JScrollPane(semesterTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  // Add padding to the scroll pane
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     private void showAddSemesterForm() {
@@ -132,7 +186,7 @@ public class SemesterPanel extends JPanel {
 
     private class SemesterTableModel extends AbstractTableModel {
 
-        private final String[] columnNames = {"Học kỳ", "Nhóm", "Năm", "Hành động", ""};
+        private final String[] columnNames = {"Học kỳ", "Nhóm", "Năm", "Hành động"};
         private List<Semester> semesters = new ArrayList<>();
 
         public void setSemesters(List<Semester> semesters) {
@@ -161,9 +215,7 @@ public class SemesterPanel extends JPanel {
                 case 2:
                     return semester.getYear();
                 case 3:
-                    return "Sửa";
-                case 4:
-                    return "Xóa";
+                    return "Hành động";
                 default:
                     throw new IllegalArgumentException("Invalid column index");
             }
@@ -176,70 +228,107 @@ public class SemesterPanel extends JPanel {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return columnIndex == 3 || columnIndex == 4;
+            return columnIndex == 3;
         }
     }
 
     private class ButtonRenderer extends JButton implements TableCellRenderer {
-        private final String buttonType;
+        private final JButton editButton;
+        private final JButton deleteButton;
 
-        public ButtonRenderer(String buttonType) {
-            this.buttonType = buttonType;
-            setText(buttonType);
-            setFont(getFont().deriveFont(Font.BOLD));
-            setFocusPainted(false);
+
+        public ButtonRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+
+            editButton = new JButton("Sửa");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton = new JButton("Xóa");
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+            add(editButton);
+            add(deleteButton);
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-                setForeground(table.getSelectionForeground());
-            } else {
-                setBackground(table.getBackground());
-                setForeground(table.getForeground());
-            }
             return this;
         }
     }
 
     private class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton button;
+        private final JButton editButton;
+        private final JButton deleteButton;
         private Semester currentSemester;
 
-        public ButtonEditor(String buttonType) {
-            button = new JButton(buttonType);
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int row = semesterTable.getSelectedRow();
-                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
-                        if (row != -1) {
-                            currentSemester = semesterTableModel.semesters.get(row);
-                            if ("Sửa".equals(buttonType)) {
-                                UpdateSemesterForm.showUpdateSemesterForm(currentSemester, SemesterPanel.this);
-                            } else if ("Xóa".equals(buttonType)) {
-                                deleteSemester(currentSemester);
-                            }
-                        }
-                        fireEditingStopped();
+        public ButtonEditor() {
+            editButton = new JButton("Sửa");
+            deleteButton = new JButton("Xóa");
 
-                    } else {
-                        Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+            editButton.setFont(new Font("Arial", Font.BOLD, 14));
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setOpaque(true);
+            editButton.setBorderPainted(false);
+            editButton.setBackground(new Color(88, 86, 214));  // Accent color
+
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setOpaque(true);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setBackground(new Color(255, 69, 58));  // Red color for delete
+
+
+            editButton.addActionListener(e -> {
+
+                int row = semesterTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentSemester = semesterTableModel.semesters.get(row);
+                        UpdateSemesterForm.showUpdateSemesterForm(currentSemester, SemesterPanel.this);
                     }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
+                }
+
+            });
+
+            deleteButton.addActionListener(e -> {
+                int row = semesterTable.getSelectedRow();
+                if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (row != -1) {
+                        currentSemester = semesterTableModel.semesters.get(row);
+                        deleteSemester(currentSemester);
+                    }
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Access denied");
                 }
             });
+
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
+            return new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)) {{
+                add(editButton);
+                add(deleteButton);
+            }};
         }
 
         @Override
         public Object getCellEditorValue() {
-            return button.getText();
+            return "Hành động";
         }
 
         @Override

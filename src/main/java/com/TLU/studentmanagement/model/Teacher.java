@@ -7,6 +7,7 @@ public class Teacher {
     private String fullName;
     private String email;  // Nếu bạn cần trường email, thêm vào đây
     private boolean isGV;
+    private boolean isAdmin;
 
 
 
@@ -44,6 +45,14 @@ public class Teacher {
     public void setGV(boolean isGV) { this.isGV = isGV; }
 
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
     @Override
     public String toString() {
         return "Teacher{" +
@@ -51,8 +60,9 @@ public class Teacher {
                 ", mgv='" + mgv + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
-                ", isGV=" + isGV +
-                '}';
+                ", isGV='" + isGV + '\'' +
+                ", isAdmin='" + isAdmin +
+                "'}";
     }
 
 }

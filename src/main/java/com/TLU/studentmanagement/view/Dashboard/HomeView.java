@@ -7,14 +7,17 @@ import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 
+import main.java.com.TLU.studentmanagement.view.pages.Grades.AdminTeacherGradesPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 import main.java.com.TLU.studentmanagement.view.pages.Grades.GradesPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Majors.MajorPanel;
+import main.java.com.TLU.studentmanagement.view.pages.ScoreReport.ScoreReportPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Semesters.SemesterPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Student.StudentsPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Teachers.TeachersPanel;
 
+import main.java.com.TLU.studentmanagement.view.pages.Transcripts.TranscriptPanel;
 import net.miginfocom.swing.MigLayout;
 
 import javax.imageio.ImageIO;
@@ -31,6 +34,8 @@ public class HomeView extends JPanel {
     private CardLayout cardLayout;
     private JLabel nameLabel;
     private JButton logoutButton;
+    private JPanel navPanel;
+    private JPanel selectedNavItem; // Thêm trường để lưu trữ navItem đã chọn
 
     // Mảng đường dẫn ảnh
     private String[] icons = {
@@ -44,6 +49,7 @@ public class HomeView extends JPanel {
 
     public HomeView() {
         initUI();
+
     }
 
     private void initUI() {
@@ -51,7 +57,7 @@ public class HomeView extends JPanel {
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JPanel navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
+        navPanel = new JPanel(new MigLayout("wrap,fillx,insets 20", "fill,200:200"));
         navPanel.setBackground(new Color(42, 63, 84));
         navPanel.setPreferredSize(new Dimension(240, getHeight()));
 
@@ -91,13 +97,13 @@ public class HomeView extends JPanel {
 
         if (user != null && !user.isGv() && !user.isAdmin()) {
             // Nếu là sinh viên, chỉ hiển thị các trang học sinh
-            addPage("Phiếu báo điểm", "Phiếu báo điểm", navPanel, contentPanel, icons[2], new GradesPanel());
+            addPage("Phiếu báo điểm", "Phiếu báo điểm", navPanel, contentPanel, icons[2], new ScoreReportPanel());
         } else {
             // Nếu là admin hoặc giáo viên, hiển thị tất cả các trang
             addPage("Thông tin Sinh viên", "TT Sinh viên", navPanel, contentPanel, icons[3], new StudentsPanel());
             addPage("Thông tin Giáo Viên", "TT Giáo Viên", navPanel, contentPanel, icons[4], new TeachersPanel());
             addPage("Thông tin Học Kỳ", "TT Học Kỳ", navPanel, contentPanel, icons[5], new SemesterPanel());
-            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new GradesPanel());
+            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new TranscriptPanel());
             addPage("Thông tin chuyên ngành", "TT Chuyên ngành", navPanel, contentPanel, icons[5], new MajorPanel());
         }
 
@@ -105,14 +111,30 @@ public class HomeView extends JPanel {
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         add(mainPanel);
+
+        // Tìm và gọi sự kiện click cho navItem đầu tiên
+        if (navPanel.getComponentCount() > 2) { // Vì 2 component đầu là nameLabel và logoutButton
+            JPanel firstNavItem = (JPanel) navPanel.getComponent(2); // Lấy navItem đầu tiên
+            firstNavItem.dispatchEvent(new java.awt.event.MouseEvent(
+                    firstNavItem,
+                    java.awt.event.MouseEvent.MOUSE_CLICKED,
+                    System.currentTimeMillis(),
+                    0,
+                    0,
+                    0,
+                    1,
+                    false
+            ));
+        }
     }
+
 
     private void addPage(String pageName, String navItem, JPanel navPanel, JPanel contentPanel, String iconPath, JPanel pagePanel) {
         contentPanel.add(pagePanel, pageName);
 
         URL iconURL = getClass().getResource(iconPath);
         if (iconURL == null) {
-            System.err.println("Resource not found: " + iconPath);
+            System.err.println("Không tìm thấy tài nguyên: " + iconPath);
             return;
         }
 
@@ -132,16 +154,53 @@ public class HomeView extends JPanel {
             navItemPanel.add(iconLabel);
             navItemPanel.add(navLabel);
 
+            // Thêm lắng nghe sự kiện chuột để thay đổi màu nền khi click
             navItemPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     cardLayout.show(contentPanel, pageName);
+                    if (selectedNavItem != null) {
+                        selectedNavItem.setBackground(new Color(42, 63, 84)); // Đặt lại màu nền cho mục đã chọn trước đó
+                    }
+                    navItemPanel.setBackground(Color.GRAY); // Đặt màu nền cho mục được chọn
+                    selectedNavItem = navItemPanel; // Cập nhật mục đã chọn
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    navItemPanel.setBackground(Color.GRAY); // Đổi màu nền khi rê chuột vào
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    if (selectedNavItem != navItemPanel) {
+                        navItemPanel.setBackground(new Color(42, 63, 84)); // Đổi lại màu nền khi rê chuột ra
+                    }
                 }
             });
 
             navPanel.add(navItemPanel, "gapbottom 20, growx");
         } catch (IOException ex) {
-            System.err.println("Error loading icon: " + iconPath);
+            System.err.println("Lỗi khi tải biểu tượng: " + iconPath);
             ex.printStackTrace();
+        }
+    }
+
+    private void selectNavItem(String name) {
+        Component[] components = navPanel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel) {
+                JPanel navItemPanel = (JPanel) component;
+                JLabel navLabel = (JLabel) navItemPanel.getComponent(1); // Lấy JLabel trong navItemPanel
+
+                if (navLabel.getText().equals(name)) {
+                    navItemPanel.setBackground(Color.GRAY); // Thiết lập màu nền xám cho navItemPanel đã chọn
+                    cardLayout.show(contentPanel, name); // Chuyển đổi sang trang có tên là 'name'
+                    selectedNavItem = navItemPanel; // Cập nhật mục đã chọn
+                } else {
+                    navItemPanel.setBackground(new Color(42, 63, 84)); // Thiết lập lại màu nền cho các navItemPanel khác
+                }
+            }
         }
     }
 
@@ -155,7 +214,7 @@ public class HomeView extends JPanel {
                 return "Welcome, " + teacher.getFullName();
             }
         }
-        return "Welcome, Guest";
+        return "Welcome";
     }
 
     private void performLogout() {

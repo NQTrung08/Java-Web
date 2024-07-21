@@ -96,12 +96,35 @@ public class LoginController {
             User user = new User();
             user.setId(userData.getString("_id"));
             user.setMsv(userData.getString("msv"));
-            user.setFullName(userData.optString("fullname", "Unknown"));
-            user.setEmail(userData.optString("email", "Unknown"));
+            user.setFullName(userData.optString("fullname", "N/A"));
+            user.setGender(userData.optString("gender", "N/A"));
+
+            // Lấy thông tin mã ngành từ đối tượng
+            JSONObject majorObject = userData.optJSONObject("majorId");
+            if (majorObject != null) {
+                user.setMajorId(majorObject.optString("_id", "N/A")); // Hoặc lấy tên hoặc mã ngành nếu cần
+                user.setMajorName(majorObject.optString("name", "N/A"));
+            } else {
+                user.setMajorId("N/A");
+            }
+
+            user.setYear(userData.optString("year", "N/A"));
+            user.setClassName(userData.optString("class", "N/A"));
             user.setAdmin(userData.getBoolean("isAdmin"));
+            user.setGvcn(userData.optString("gvcn", "N/A"));
+            user.setGvcnName(userData.optString("gvcnName", "N/A"));
+            user.setDeleted(userData.optBoolean("deleted", false));
+            user.setGv(userData.optBoolean("isGV", false));
+            user.setAdmin(userData.optBoolean("isAdmin", false));
+            user.setEmail(userData.optString("email", "N/A")); // Date of birth
+            user.setDob(userData.optString("dob", "N/A")); // Date of birth
+            user.setPhone(userData.optString("phone", "N/A")); // Phone number
+            user.setCountry(userData.optString("country", "N/A")); // Country
+            user.setAddress(userData.optString("address", "N/A")); // Address
 
             return user;
         }
+
 
         private Teacher fetchTeacherDetails(String userId) throws Exception {
             String apiUrl = "http://localhost:8080/api/teacher/" + userId;

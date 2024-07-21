@@ -3,12 +3,15 @@ package main.java.com.TLU.studentmanagement.view.pages.Information;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
+import main.java.com.TLU.studentmanagement.controller.UserController;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,11 +20,14 @@ import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
+import raven.toast.Notifications;
+
 
 public class PersonalInfoPanel extends JPanel {
     private JTable personalInfoTable;
     private JTable contactInfoTable;
     private JButton updateButton;
+    private JButton refreshButton;
 
     public PersonalInfoPanel() {
         // Apply FlatLaf theme settings
@@ -47,27 +53,10 @@ public class PersonalInfoPanel extends JPanel {
 
         // Panel thông tin cá nhân
         JPanel personalInfoPanel = new JPanel(new BorderLayout(10, 10));
-        personalInfoPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 10, 10, 10),
-                "Thông tin cá nhân",
-                TitledBorder.CENTER,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 18),
-                Color.BLACK
-        ));
+        personalInfoPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), "Thông tin cá nhân", TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 18), Color.BLACK));
 
         String[] personalColumns = {"Thông tin", "Chi tiết"};
-        Object[][] personalData = {
-                {"Mã", ""},
-                {"Họ tên", ""},
-                {"Giới tính", ""},
-                {"CMND/CCCD", ""},
-                {"Lớp sinh viên", ""},
-                {"Ngành học", ""},
-                {"Năm học", ""},
-                {"Ngày sinh", ""},
-                {"Quyền", ""}
-        };
+        Object[][] personalData = {{"Mã", ""}, {"Họ tên", ""}, {"Giới tính", ""}, {"CMND/CCCD", ""}, {"Lớp sinh viên", ""}, {"Ngành học", ""}, {"Năm học", ""}, {"Ngày sinh", ""}, {"Quyền", ""}};
         personalInfoTable = new JTable(personalData, personalColumns);
         personalInfoTable.setEnabled(false);  // Disable editing
         personalInfoTable.setRowHeight(30);
@@ -82,22 +71,10 @@ public class PersonalInfoPanel extends JPanel {
 
         // Panel thông tin liên lạc
         JPanel contactInfoPanel = new JPanel(new BorderLayout(10, 10));
-        contactInfoPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(10, 10, 10, 10),
-                "Thông tin liên lạc",
-                TitledBorder.CENTER,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 18),
-                Color.BLACK
-        ));
+        contactInfoPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), "Thông tin liên lạc", TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 18), Color.BLACK));
 
         String[] contactColumns = {"Thông tin", "Chi tiết"};
-        Object[][] contactData = {
-                {"Điện thoại", ""},
-                {"Email cá nhân", ""},
-                {"Quốc gia", ""},
-                {"Địa chỉ", ""}
-        };
+        Object[][] contactData = {{"Điện thoại", ""}, {"Email cá nhân", ""}, {"Quốc gia", ""}, {"Địa chỉ", ""}};
         contactInfoTable = new JTable(contactData, contactColumns);
         contactInfoTable.setEnabled(false);  // Disable editing
         contactInfoTable.setRowHeight(30);
@@ -114,6 +91,30 @@ public class PersonalInfoPanel extends JPanel {
         tablesPanel.add(personalInfoPanel);
         tablesPanel.add(contactInfoPanel);
 
+        // Panel cho tiêu đề và các nút
+        JPanel topPanel = new JPanel(new BorderLayout());
+
+        // Nút Refresh
+        refreshButton = new JButton("Làm mới");
+        refreshButton.setFocusPainted(false);
+        refreshButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setBackground(new Color(88, 86, 214));  // Accent color
+        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setPreferredSize(new Dimension(120, 40));
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadData();  // Refresh data
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
+            }
+        });
+
+        JPanel topButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        topButtonPanel.add(refreshButton);
+
+        topPanel.add(topButtonPanel, BorderLayout.EAST);
+
         updateButton = new JButton("Cập nhật thông tin cá nhân");
         updateButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         updateButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -125,50 +126,138 @@ public class PersonalInfoPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(updateButton);
 
+        add(topPanel, BorderLayout.NORTH);
         add(tablesPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        updateButton.addActionListener(e -> showUpdateModal());
 
         loadData();
     }
 
+
+    private void showUpdateModal() {
+        // Create a panel for the form fields
+        JPanel panel = new JPanel(new GridLayout(7, 2, 5, 5));
+
+        // Initialize fields with existing user information
+        JTextField fullNameField = new JTextField();
+        JTextField emailField = new JTextField();
+        JTextField phoneField = new JTextField();
+        JTextField addressField = new JTextField();
+        JTextField dobField = new JTextField();
+        JTextField genderField = new JTextField();
+
+        User user = UserSession.getUser();
+        try {
+            User userDetails = UserController.fetchUserDetails(user.getId());
+
+
+            if (user != null) {
+                fullNameField.setText(userDetails.getFullName());
+                emailField.setText(userDetails.getEmail() != null ? user.getEmail() : "");
+                phoneField.setText(userDetails.getPhone() != null ? user.getPhone() : "");
+                addressField.setText(userDetails.getAddress() != null ? user.getAddress() : "");
+                dobField.setText(userDetails.getDob() != null ? user.getDob() : "");
+                genderField.setText(userDetails.getGender() != null ? user.getGender() : "");
+            }
+
+            panel.add(new JLabel("Họ tên:"));
+            panel.add(fullNameField);
+            panel.add(new JLabel("Email:"));
+            panel.add(emailField);
+            panel.add(new JLabel("Điện thoại:"));
+            panel.add(phoneField);
+            panel.add(new JLabel("Địa chỉ:"));
+            panel.add(addressField);
+            panel.add(new JLabel("Ngày sinh:"));
+            panel.add(dobField);
+            panel.add(new JLabel("Giới tính:"));
+            panel.add(genderField);
+
+            // Create a scroll pane for the panel to allow scrolling if needed
+            JScrollPane scrollPane = new JScrollPane(panel);
+            scrollPane.setPreferredSize(new Dimension(400, 300));  // Set the preferred size for the scroll pane
+
+            int result = JOptionPane.showConfirmDialog(this, scrollPane, "Cập nhật thông tin cá nhân", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String fullName = fullNameField.getText();
+                String email = emailField.getText();
+                String phone = phoneField.getText();
+                String address = addressField.getText();
+                String dob = dobField.getText();
+                String gender = genderField.getText();
+
+                // Call the API to update user information
+                boolean isSuccess = UserController.updateUserInformation(fullName, email, phone, address, dob, gender);
+
+                if (isSuccess) {
+                    // Reload user details after successful update
+                    try {
+                        user = UserSession.getUser();
+                        if (user != null) {
+                            UserController.fetchUserDetails(user.getId()); // Fetch new user details
+                            loadData(); // Reload the data into the panel
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(PersonalInfoPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thông tin không thành công.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public void loadData() {
         try {
             User user = UserSession.getUser();
-            Teacher teacher = TeacherSession.getTeacher();
 
             if (user != null) {
-                personalInfoTable.setValueAt(user.getMsv(), 0, 1);
-                personalInfoTable.setValueAt(user.getFullName(), 1, 1);
-                personalInfoTable.setValueAt(user.getGender() != null ? user.getGender() : "N/A", 2, 1);
-                personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có trong lớp User
-                personalInfoTable.setValueAt("N/A", 4, 1);  // Lớp sinh viên không có trong lớp User
-                personalInfoTable.setValueAt(user.getMajorId() != null ? user.getMajorId() : "N/A", 5, 1);
-                personalInfoTable.setValueAt(user.getYear() != null ? user.getYear() : "N/A", 6, 1);
-                personalInfoTable.setValueAt("N/A", 7, 1);  // Ngày sinh không có trong lớp User
-                personalInfoTable.setValueAt(user.isAdmin() ? "Admin" : "Student", 8, 1);
+                // Gọi API để lấy thông tin người dùng
+                User userDetails = UserController.fetchUserDetails(user.getId());
 
-                contactInfoTable.setValueAt("N/A", 0, 1);  // Điện thoại không có trong lớp User
-                contactInfoTable.setValueAt(user.getEmail() != null ? user.getEmail() : "N/A", 1, 1);
-                contactInfoTable.setValueAt("N/A", 2, 1);  // Quốc gia không có trong lớp User
-                contactInfoTable.setValueAt("N/A", 3, 1);  // Địa chỉ không có trong lớp User
-            } else if (teacher != null) {
-                personalInfoTable.setValueAt(teacher.getMgv(), 0, 1);
-                personalInfoTable.setValueAt(teacher.getFullName(), 1, 1);
-                personalInfoTable.setValueAt("N/A", 2, 1);  // Giới tính không có cho giáo viên
-                personalInfoTable.setValueAt("N/A", 3, 1);  // CMND/CCCD không có cho giáo viên
-                personalInfoTable.setValueAt("N/A", 4, 1);  // Lớp sinh viên không có cho giáo viên
-//                personalInfoTable.setValueAt(teacher.getMajor() != null ? teacher.getMajor() : "N/A", 5, 1);
-//                personalInfoTable.setValueAt(teacher.getYear() != null ? teacher.getYear() : "N/A", 6, 1);
-//                personalInfoTable.setValueAt(teacher.getDob() != null ? teacher.getDob() : "N/A", 7, 1);
-                personalInfoTable.setValueAt(teacher.isGV() ? "Teacher" : "Unknown", 8, 1);
+                // Cập nhật dữ liệu bảng cá nhân
+                personalInfoTable.setValueAt(userDetails.getMsv() != null ? userDetails.getMsv() : "N/A", 0, 1);
+                personalInfoTable.setValueAt(userDetails.getFullName() != null ? userDetails.getFullName() : "N/A", 1, 1);
+                personalInfoTable.setValueAt(userDetails.getGender() != null ? userDetails.getGender() : "N/A", 2, 1);
+                personalInfoTable.setValueAt("N/A", 3, 1);
+                personalInfoTable.setValueAt(userDetails.getClassName() != null ? userDetails.getClassName() : "N/A", 4, 1);
+                personalInfoTable.setValueAt(userDetails.getMajorName() != null ? userDetails.getMajorName() : "N/A", 5, 1);
+                personalInfoTable.setValueAt(userDetails.getYear() != null ? userDetails.getYear() : "N/A", 6, 1);
+                personalInfoTable.setValueAt(userDetails.getDob() != null ? userDetails.getDob() : "N/A", 7, 1);
+                personalInfoTable.setValueAt(userDetails.isAdmin() ? "Admin" : "Student", 8, 1);
 
-                contactInfoTable.setValueAt("N/A", 0, 1);  // Điện thoại không có cho giáo viên
-                contactInfoTable.setValueAt("N/A", 1, 1);  // Email không có cho giáo viên
-                contactInfoTable.setValueAt("N/A", 2, 1);  // Quốc gia không có cho giáo viên
-                contactInfoTable.setValueAt("N/A", 3, 1);  // Địa chỉ không có cho giáo viên
+                // Cập nhật dữ liệu bảng liên lạc
+                contactInfoTable.setValueAt(userDetails.getPhone() != null ? userDetails.getPhone() : "N/A", 0, 1);
+                contactInfoTable.setValueAt(userDetails.getEmail() != null ? userDetails.getEmail() : "N/A", 1, 1);
+                contactInfoTable.setValueAt(userDetails.getCountry() != null ? userDetails.getCountry() : "N/A", 2, 1);
+                contactInfoTable.setValueAt(userDetails.getAddress() != null ? userDetails.getAddress() : "N/A", 3, 1);
+            } else {
+                // Nếu không có người dùng, xóa dữ liệu trong bảng
+                clearTableData();
             }
         } catch (Exception ex) {
             Logger.getLogger(PersonalInfoPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+
+    private void clearTableData() {
+        for (int row = 0; row < personalInfoTable.getRowCount(); row++) {
+            for (int col = 1; col < personalInfoTable.getColumnCount(); col++) {
+                personalInfoTable.setValueAt("N/A", row, col);
+            }
+        }
+
+        for (int row = 0; row < contactInfoTable.getRowCount(); row++) {
+            for (int col = 1; col < contactInfoTable.getColumnCount(); col++) {
+                contactInfoTable.setValueAt("N/A", row, col);
+            }
         }
     }
 
