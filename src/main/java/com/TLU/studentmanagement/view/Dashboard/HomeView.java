@@ -7,6 +7,7 @@ import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 
+import main.java.com.TLU.studentmanagement.view.pages.Grades.AdminTeacherGradesPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Information.PersonalInfoPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
 import main.java.com.TLU.studentmanagement.view.pages.Grades.GradesPanel;
@@ -15,6 +16,7 @@ import main.java.com.TLU.studentmanagement.view.pages.Semesters.SemesterPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Student.StudentsPanel;
 import main.java.com.TLU.studentmanagement.view.pages.Teachers.TeachersPanel;
 
+import main.java.com.TLU.studentmanagement.view.pages.Transcripts.TranscriptPanel;
 import net.miginfocom.swing.MigLayout;
 
 import javax.imageio.ImageIO;
@@ -100,7 +102,7 @@ public class HomeView extends JPanel {
             addPage("Thông tin Sinh viên", "TT Sinh viên", navPanel, contentPanel, icons[3], new StudentsPanel());
             addPage("Thông tin Giáo Viên", "TT Giáo Viên", navPanel, contentPanel, icons[4], new TeachersPanel());
             addPage("Thông tin Học Kỳ", "TT Học Kỳ", navPanel, contentPanel, icons[5], new SemesterPanel());
-            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new GradesPanel());
+            addPage("Thông tin bảng điểm", "TT Bảng điểm", navPanel, contentPanel, icons[2], new TranscriptPanel());
             addPage("Thông tin chuyên ngành", "TT Chuyên ngành", navPanel, contentPanel, icons[5], new MajorPanel());
         }
 
