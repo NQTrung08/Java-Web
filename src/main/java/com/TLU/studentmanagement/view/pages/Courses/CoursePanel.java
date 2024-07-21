@@ -67,6 +67,7 @@ public class CoursePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 getAllCourses();
                 getAllMajors();  // Refresh the list of majors
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
             }
         });
 
