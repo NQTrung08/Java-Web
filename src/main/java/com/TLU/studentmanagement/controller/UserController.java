@@ -301,7 +301,15 @@ public class UserController {
                 user.setYear(jsonObj.optString("year"));
                 user.setClassName(jsonObj.optString("class"));
                 user.setEmail(jsonObj.optString("email"));
-                user.setMajorId(jsonObj.optString("majorId"));
+                // Lấy majorId từ đối tượng JSON
+                JSONObject majorIdObj = jsonObj.optJSONObject("majorId");
+                if (majorIdObj != null) {
+                    user.setMajorId(majorIdObj.optString("_id"));
+                    // Nếu bạn cũng muốn lấy tên của chuyên ngành, có thể thêm như sau:
+                    String majorName = majorIdObj.optString("name");
+                    // Nếu bạn cần tên chuyên ngành, bạn có thể lưu nó vào một thuộc tính khác hoặc sử dụng theo cách khác.
+                    user.setMajorName(majorName); // Ví dụ: nếu có thuộc tính này trong User class
+                }
                 user.setGvcn(jsonObj.optString("gvcn"));
                 students.add(user);
             }
