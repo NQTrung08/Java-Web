@@ -116,6 +116,7 @@ public class LoginController {
             user.setDeleted(userData.optBoolean("deleted", false));
             user.setGv(userData.optBoolean("isGV", false));
             user.setAdmin(userData.optBoolean("isAdmin", false));
+            user.setEmail(userData.optString("email", "N/A")); // Date of birth
             user.setDob(userData.optString("dob", "N/A")); // Date of birth
             user.setPhone(userData.optString("phone", "N/A")); // Phone number
             user.setCountry(userData.optString("country", "N/A")); // Country
