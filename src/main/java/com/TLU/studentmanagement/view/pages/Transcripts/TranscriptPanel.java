@@ -6,6 +6,7 @@ import main.java.com.TLU.studentmanagement.controller.UserController;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.model.User;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -65,7 +66,10 @@ public class TranscriptPanel extends JPanel {
         reloadButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                loadStudentAndSemesterData();
+                searchField.setText("");
                 loadTranscripts();
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Refresh success.");
             }
         });
 
@@ -156,17 +160,31 @@ public class TranscriptPanel extends JPanel {
     private void searchTranscripts() {
         String keyword = searchField.getText().toLowerCase();
         List<Transcript> transcripts = transcriptController.searchTranscripts(keyword);
+
+        // In ra dữ liệu để kiểm tra
+        System.out.println("Số lượng bảng điểm tìm thấy: " + transcripts.size());
+        for (Transcript transcript : transcripts) {
+            System.out.println("Transcript ID: " + transcript.getId() +
+                    ", Student ID: " + transcript.getStudentId() +
+                    ", Semester ID: " + transcript.getSemesterId());
+        }
+
         tableModel.setRowCount(0);
         for (Transcript transcript : transcripts) {
             String studentName = getStudentNameById(transcript.getStudentId());
             String semesterName = getSemesterNameById(transcript.getSemesterId());
+
+            // In ra giá trị để kiểm tra
+            System.out.println("Student Name: " + studentName + ", Semester Name: " + semesterName);
+
             tableModel.addRow(new Object[]{
-                    studentName,
-                    semesterName,
+                    studentName != null ? studentName : "Không tìm thấy",
+                    semesterName != null ? semesterName : "Không tìm thấy",
                     "Xem"
             });
         }
     }
+
 
     private void openAddTranscriptForm() {
         new AddTranscriptForm(
