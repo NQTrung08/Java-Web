@@ -67,10 +67,15 @@ public class GradeController {
     public void updateGrade(String gradeId, Grade grade) {
         try {
             JSONObject jsonGrade = new JSONObject();
-            jsonGrade.put("courseId", grade.getCourseId());
-            jsonGrade.put("transcriptId", grade.getTranscriptId());
+//            jsonGrade.put("courseId", grade.getCourseId());
+//            jsonGrade.put("transcriptId", grade.getTranscriptId());
             jsonGrade.put("midScore", grade.getMidScore());
-            jsonGrade.put("finalScore", grade.getFinalScore());
+            jsonGrade.put("finalScore ", grade.getFinalScore());
+
+//            System.out.println("midScore " + grade.getMidScore());
+//            System.out.println("finalScore " + grade.getFinalScore());
+//            System.out.println("grade id: " + gradeId);
+
             HttpUtil.sendPut(BASE_URL + "/update/" + gradeId, jsonGrade.toString());
         } catch (Exception e) {
             e.printStackTrace();

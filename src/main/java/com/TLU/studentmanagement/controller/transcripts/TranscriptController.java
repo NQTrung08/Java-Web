@@ -131,40 +131,46 @@ public class TranscriptController {
     }
 
     public Transcript getTranscriptBySemesterStudent(String studentId, String semesterId) {
-        Transcript transcript = null;
+        Transcript transcript = new Transcript();
+        transcript.setStudentId(studentId);
+        transcript.setSemesterId(semesterId);
+
         try {
+            // Gửi yêu cầu GET đến API
             String response = HttpUtil.sendGet("http://localhost:8080/api/transcript/student/" + studentId + "/semester/" + semesterId);
+
+            // Phân tích JSON
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
-            if (jsonArray.length() > 0) {
-                JSONObject jsonTranscript = jsonArray.getJSONObject(0);
+            // Danh sách lưu các điểm
+            List<Grade> grades = new ArrayList<>();
 
-                transcript = new Transcript();
-                transcript.setId(jsonTranscript.getString("_id"));
-                transcript.setStudentId(studentId);
-                transcript.setSemesterId(semesterId);
+            // Lặp qua các đối tượng điểm trong mảng JSON
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonGrade = jsonArray.getJSONObject(i);
 
-                JSONArray gradesArray = jsonTranscript.getJSONArray("grades");
-                List<Grade> grades = new ArrayList<>();
-                for (int i = 0; i < gradesArray.length(); i++) {
-                    JSONObject jsonGrade = gradesArray.getJSONObject(i);
-                    Grade grade = new Grade();
-                    grade.setCourse(jsonGrade.getString("course"));
-                    grade.setMidScore(jsonGrade.getDouble("midScore"));
-                    grade.setFinalScore(jsonGrade.getDouble("finalScore"));
-                    grade.setAverageScore(jsonGrade.getDouble("averageScore"));
-                    grade.setStatus(jsonGrade.getString("status"));
-                    grades.add(grade);
-                }
-                transcript.setGrades(grades);
+                Grade grade = new Grade();
+//                grade.getString("courseCode"),
+//                grade.getInt("credit"),
+                grade.setId(jsonGrade.getString("gradeId"));
+                grade.setCourse(jsonGrade.getString("courseName"));
+                grade.setMidScore(jsonGrade.getDouble("midScore"));
+                grade.setFinalScore(jsonGrade.getDouble("finalScore"));
+                grade.setAverageScore(jsonGrade.getDouble("averageScore"));
+                grade.setStatus(jsonGrade.getString("status"));
+
+                grades.add(grade);
             }
+
+            // Gán danh sách điểm vào đối tượng Transcript
+            transcript.setGrades(grades);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return transcript;
     }
-
 
 
     public int createTranscript(Transcript transcript) {

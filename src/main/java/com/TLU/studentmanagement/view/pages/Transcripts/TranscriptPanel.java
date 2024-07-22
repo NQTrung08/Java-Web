@@ -138,6 +138,57 @@ public class TranscriptPanel extends JPanel {
         ).setVisible(true);
     }
 
+    private void viewTranscript(int row) {
+        String studentDisplay = (String) tableModel.getValueAt(row, 0);
+        String semesterDisplay = (String) tableModel.getValueAt(row, 1);
+
+//        System.out.println("studentDisplay: " + studentDisplay + "\nsemesterDisplay: " + semesterDisplay);
+
+        String studentId = getStudentIdByDisplay(studentDisplay);
+        String semesterId = getSemesterIdByDisplay(semesterDisplay);
+
+//        System.out.println("studentId: " + studentId + "\nsemesterId: " + semesterId);
+
+        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
+        if (transcript == null) {
+            JOptionPane.showMessageDialog(null, "No transcript found for the selected student and semester.");
+            return;
+        }
+
+        JFrame frame = new JFrame("Transcript Details");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(800, 600);
+
+        TranscriptDetail transcriptDetailPanel = new TranscriptDetail(transcript);
+        frame.add(transcriptDetailPanel);
+
+        frame.setVisible(true);
+    }
+
+    private String getStudentIdByDisplay(String studentDisplay) {
+        String msv = studentDisplay.split(" - ")[1]; // Extract msv from display string
+        for (User student : students) {
+            if (student.getMsv().equals(msv)) {
+                return student.getId();
+            }
+        }
+        return null;
+    }
+
+    private String getSemesterIdByDisplay(String semesterDisplay) {
+        String[] parts = semesterDisplay.split(" - ");
+        String semester = parts[0];
+        String group = parts[1];
+        String year = parts[2].replace("Năm học: ", "");
+
+        for (Semester sem : semesters) {
+            if (sem.getSemester().equals(semester) && sem.getGroup().equals(group) && sem.getYear().equals(year)) {
+                return sem.getId();
+            }
+        }
+        return null;
+    }
+
     class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
@@ -175,76 +226,5 @@ public class TranscriptPanel extends JPanel {
         public Object getCellEditorValue() {
             return label;
         }
-    }
-
-    private void viewTranscript(int row) {
-        String studentDisplay = (String) tableModel.getValueAt(row, 0);
-        String semesterDisplay = (String) tableModel.getValueAt(row, 1);
-        String studentId = getStudentIdByDisplay(studentDisplay);
-        String semesterId = getSemesterIdByDisplay(semesterDisplay);
-
-        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
-        if (transcript == null) {
-            JOptionPane.showMessageDialog(null, "No transcript found for the selected student and semester.");
-            return;
-        }
-
-        JFrame frame = new JFrame("Transcript Details");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(600, 400);
-
-        JTextArea transcriptDetails = new JTextArea(transcript.toString());
-        frame.add(new JScrollPane(transcriptDetails), BorderLayout.CENTER);
-
-        JPanel actionsPanel = new JPanel();
-        JButton editButton = new JButton("Edit");
-        JButton deleteButton = new JButton("Delete");
-
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Implement edit functionality
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                transcriptController.deleteTranscript(transcript.getId());
-                loadTranscripts(); // Reload transcripts after deletion
-                frame.dispose();
-            }
-        });
-
-        actionsPanel.add(editButton);
-        actionsPanel.add(deleteButton);
-        frame.add(actionsPanel, BorderLayout.SOUTH);
-
-        frame.setVisible(true);
-    }
-
-
-    private String getStudentIdByDisplay(String studentDisplay) {
-        String msv = studentDisplay.split(" - ")[1]; // Extract msv from display string
-        for (User student : students) {
-            if (student.getMsv().equals(msv)) {
-                return student.getId();
-            }
-        }
-        return null;
-    }
-
-    private String getSemesterIdByDisplay(String semesterDisplay) {
-        String[] parts = semesterDisplay.split(" - ");
-        String semester = parts[0];
-        String group = parts[1];
-        String year = parts[2].replace("Năm học: ", "");
-
-        for (Semester sem : semesters) {
-            if (sem.getSemester().equals(semester) && sem.getGroup().equals(group) && sem.getYear().equals(year)) {
-                return sem.getId();
-            }
-        }
-        return null;
     }
 }
