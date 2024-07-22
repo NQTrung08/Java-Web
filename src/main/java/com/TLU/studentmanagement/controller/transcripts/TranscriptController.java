@@ -205,18 +205,34 @@ public class TranscriptController {
         }
     }
 
-
-
-    public void updateTranscript(String transcriptId, Transcript transcript) {
+    public int updateTranscript(String transcriptId, Transcript transcript) {
         try {
+            // Tạo JSON object từ đối tượng Transcript
             JSONObject jsonTranscript = new JSONObject();
             jsonTranscript.put("studentId", transcript.getStudentId());
             jsonTranscript.put("semesterId", transcript.getSemesterId());
-            HttpUtil.sendPut(BASE_URL + "/update/" + transcriptId, jsonTranscript.toString());
+
+            System.out.println("transcriptId " + transcriptId);
+
+            // Gửi yêu cầu PUT đến server để cập nhật bảng điểm
+            String response = HttpUtil.sendPut(BASE_URL + "/update/" + transcriptId, jsonTranscript.toString());
+
+            // Xử lý phản hồi từ server
+            if (response != null) {
+                return 1; // Cập nhật thành công
+            }
+            JSONObject jsonResponse = new JSONObject(response);
+            if (jsonResponse == null || jsonResponse.getInt("code") == 404 || jsonResponse.getString("status") == "error") {
+                return -1; // Bảng điểm đã tồn tại
+            } else {
+                return 0; // Cập nhật thất bại
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            return 0; // Thất bại trong quá trình cập nhật
         }
     }
+
 
     public void deleteTranscript(String transcriptId) {
         try {
