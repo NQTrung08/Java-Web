@@ -8,6 +8,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import raven.toast.Notifications;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -254,18 +258,32 @@ public class TranscriptController {
 
     public List<Transcript> searchTranscripts(String keyword) {
         List<Transcript> transcripts = new ArrayList<>();
+
+        System.out.println("keyword: " + keyword);
+
         try {
-            String url = BASE_URL + "/search?keyword=" + keyword;
-            String response = HttpUtil.sendGet(url);
-            JSONArray jsonArray = new JSONArray(response);
+            String url = BASE_URL + "/search?keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString());
+
+            System.out.println("url: " + url);
+
+            String response = HttpUtil.sendPost(url, null);
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray jsonArray = jsonResponse.getJSONArray("data");
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonTranscript = jsonArray.getJSONObject(i);
                 Transcript transcript = new Transcript();
                 transcript.setId(jsonTranscript.getString("_id"));
                 transcript.setDeleted(jsonTranscript.getBoolean("deleted"));
-                transcript.setStudentId(jsonTranscript.optString("studentId", ""));
-                transcript.setSemesterId(jsonTranscript.optString("semesterId", ""));
+
+                // Lấy thông tin sinh viên
+                JSONObject studentObj = jsonTranscript.getJSONObject("student");
+                transcript.setStudentId(studentObj.getString("_id"));
+
+                // Lấy thông tin học kỳ
+                JSONObject semesterObj = jsonTranscript.getJSONObject("semester");
+                transcript.setSemesterId(semesterObj.getString("_id"));
+
                 transcripts.add(transcript);
             }
         } catch (Exception e) {
@@ -273,5 +291,6 @@ public class TranscriptController {
         }
         return transcripts;
     }
+
 
 }
