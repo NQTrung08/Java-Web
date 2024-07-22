@@ -232,7 +232,7 @@ public class ScoreReportPanel extends JPanel {
                             JSONObject item = transcriptData.getJSONObject(i);
                             model.addRow(new Object[]{
                                     i + 1,
-                                    item.getString("courseId"),
+                                    item.getString("courseCode"),
                                     item.getString("courseName"),
                                     item.getInt("credit"),
                                     item.getFloat("midScore"),
