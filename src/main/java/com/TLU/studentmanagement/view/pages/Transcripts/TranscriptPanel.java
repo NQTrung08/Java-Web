@@ -202,6 +202,9 @@ public class TranscriptPanel extends JPanel {
         String studentId = getStudentIdByDisplay(studentDisplay);
         String semesterId = getSemesterIdByDisplay(semesterDisplay);
         Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
+
+//        System.out.println("transcriptId view detail: " + transcript.getId());
+
         if (transcript == null) {
             JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm cho sinh viên và kỳ học được chọn.");
             return;
@@ -244,16 +247,15 @@ public class TranscriptPanel extends JPanel {
         String studentDisplay = (String) tableModel.getValueAt(row, 0);
         String semesterDisplay = (String) tableModel.getValueAt(row, 1);
 
-        System.out.println("Deleting Transcript...");
-        System.out.println("Student Display: " + studentDisplay);
-        System.out.println("Semester Display: " + semesterDisplay);
+//        System.out.println("Student Display: " + studentDisplay);
+//        System.out.println("Semester Display: " + semesterDisplay);
 
         // Tìm ID của sinh viên và học kỳ từ dữ liệu hiển thị
         String studentId = getStudentIdByDisplay(studentDisplay);
         String semesterId = getSemesterIdByDisplay(semesterDisplay);
 
-        System.out.println("Student ID: " + studentId);
-        System.out.println("Semester ID: " + semesterId);
+//        System.out.println("Student ID: " + studentId);
+//        System.out.println("Semester ID: " + semesterId);
 
         // Xác nhận rằng chúng ta có được ID sinh viên và học kỳ hợp lệ
         if (studentId == null || semesterId == null) {
@@ -269,8 +271,8 @@ public class TranscriptPanel extends JPanel {
             return;
         }
 
-        System.out.println("Transcript Found: " + transcript);
-        System.out.println("Transcript ID: " + transcript.getId());
+//        System.out.println("Transcript Found: " + transcript);
+//        System.out.println("Transcript ID: " + transcript.getId());
 
 //         Kiểm tra ID có hợp lệ không
         if (transcript.getId() == null || transcript.getId().isEmpty()) {

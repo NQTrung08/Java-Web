@@ -141,35 +141,43 @@ public class TranscriptController {
         transcript.setSemesterId(semesterId);
 
         try {
-            // Gửi yêu cầu GET đến API
+            // Send GET request to the API
             String response = HttpUtil.sendGet("http://localhost:8080/api/transcript/student/" + studentId + "/semester/" + semesterId);
 
-            // Phân tích JSON
+            // Parse the JSON response
             JSONObject jsonResponse = new JSONObject(response);
-            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+            JSONArray transcriptsArray = jsonResponse.getJSONArray("data");
 
-            // Danh sách lưu các điểm
-            List<Grade> grades = new ArrayList<>();
+            // Check if there is at least one transcript
+            if (transcriptsArray.length() > 0) {
+                JSONObject jsonTranscript = transcriptsArray.getJSONObject(0); // Assuming only one transcript per student and semester
 
-            // Lặp qua các đối tượng điểm trong mảng JSON
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonGrade = jsonArray.getJSONObject(i);
+                // Set the ID for the transcript
+                String transcriptId = jsonTranscript.getString("_id");
+                transcript.setId(transcriptId);
 
-                Grade grade = new Grade();
-//                grade.getString("courseCode"),
-//                grade.getInt("credit"),
-                grade.setId(jsonGrade.getString("gradeId"));
-                grade.setCourse(jsonGrade.getString("courseName"));
-                grade.setMidScore(jsonGrade.getDouble("midScore"));
-                grade.setFinalScore(jsonGrade.getDouble("finalScore"));
-                grade.setAverageScore(jsonGrade.getDouble("averageScore"));
-                grade.setStatus(jsonGrade.getString("status"));
+                // List to store grades
+                List<Grade> grades = new ArrayList<>();
 
-                grades.add(grade);
+                // Loop through the grades array in the JSON object
+                JSONArray gradesArray = jsonTranscript.getJSONArray("grades");
+                for (int i = 0; i < gradesArray.length(); i++) {
+                    JSONObject jsonGrade = gradesArray.getJSONObject(i);
+
+                    Grade grade = new Grade();
+                    grade.setId(jsonGrade.getString("gradeId"));
+                    grade.setCourse(jsonGrade.getString("courseName"));
+                    grade.setMidScore(jsonGrade.getDouble("midScore"));
+                    grade.setFinalScore(jsonGrade.getDouble("finalScore"));
+                    grade.setAverageScore(jsonGrade.getDouble("averageScore"));
+                    grade.setStatus(jsonGrade.getString("status"));
+
+                    grades.add(grade);
+                }
+
+                // Assign the grades list to the Transcript object
+                transcript.setGrades(grades);
             }
-
-            // Gán danh sách điểm vào đối tượng Transcript
-            transcript.setGrades(grades);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -221,6 +229,8 @@ public class TranscriptController {
 
             // Gửi yêu cầu PUT đến server để cập nhật bảng điểm
             String response = HttpUtil.sendPut(BASE_URL + "/update/" + transcriptId, jsonTranscript.toString());
+
+            System.out.println("Rsp: " + response);
 
             // Xử lý phản hồi từ server
             if (response != null) {

@@ -27,6 +27,7 @@ public class TranscriptDetail extends JPanel {
         this.transcriptController = new TranscriptController();
         this.gradeController = new GradeController();
         this.courseController = new CourseController(); // Initialize this
+//        loadTableData();
         initUI();
     }
 
@@ -133,6 +134,7 @@ public class TranscriptDetail extends JPanel {
                         showEditDialog(row);
                         // Stop editing to ensure control is released properly
                         stopCellEditing();
+                        loadTableData();
                     }
                 }
             });
@@ -145,6 +147,7 @@ public class TranscriptDetail extends JPanel {
                         deleteGrade(row);
                         // Stop editing to ensure control is released properly
                         stopCellEditing();
+                        loadTableData();
                     }
                 }
             });
