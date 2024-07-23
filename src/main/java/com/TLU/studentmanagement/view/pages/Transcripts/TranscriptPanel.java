@@ -42,7 +42,7 @@ public class TranscriptPanel extends JPanel {
 
         JLabel titleLabel = new JLabel("Thông tin bảng điểm", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titleLabel, BorderLayout.NORTH);
 
         JPanel topPanel = new JPanel();
@@ -158,6 +158,7 @@ public class TranscriptPanel extends JPanel {
     }
 
     private void searchTranscripts() {
+        loadStudentAndSemesterData(); // Đảm bảo dữ liệu đã được nạp
         String keyword = searchField.getText().toLowerCase();
         List<Transcript> transcripts = transcriptController.searchTranscripts(keyword);
 
@@ -236,22 +237,60 @@ public class TranscriptPanel extends JPanel {
         ).setVisible(true);
     }
 
-    private void deleteTranscript(int row) {
+        private void deleteTranscript(int row) {
+        loadStudentAndSemesterData(); // Đảm bảo dữ liệu đã được nạp
+
+        // Lấy thông tin từ bảng
         String studentDisplay = (String) tableModel.getValueAt(row, 0);
         String semesterDisplay = (String) tableModel.getValueAt(row, 1);
+
+        System.out.println("Deleting Transcript...");
+        System.out.println("Student Display: " + studentDisplay);
+        System.out.println("Semester Display: " + semesterDisplay);
+
+        // Tìm ID của sinh viên và học kỳ từ dữ liệu hiển thị
         String studentId = getStudentIdByDisplay(studentDisplay);
         String semesterId = getSemesterIdByDisplay(semesterDisplay);
+
+        System.out.println("Student ID: " + studentId);
+        System.out.println("Semester ID: " + semesterId);
+
+        // Xác nhận rằng chúng ta có được ID sinh viên và học kỳ hợp lệ
+        if (studentId == null || semesterId == null) {
+            JOptionPane.showMessageDialog(null, "Không thể xác định ID sinh viên hoặc học kỳ.");
+            return;
+        }
+
+        // Lấy đối tượng Transcript từ controller
         Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
+
         if (transcript == null) {
             JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm để xóa.");
             return;
         }
+
+        System.out.println("Transcript Found: " + transcript);
+        System.out.println("Transcript ID: " + transcript.getId());
+
+//         Kiểm tra ID có hợp lệ không
+        if (transcript.getId() == null || transcript.getId().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "ID bảng điểm không hợp lệ.");
+            return;
+        }
+
+        // Xác nhận xóa
         int confirm = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn muốn xóa bảng điểm này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            transcriptController.deleteTranscript(transcript.getId());
-            loadTranscripts();
+            try {
+                transcriptController.deleteTranscript(transcript.getId());
+                loadTranscripts();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Lỗi khi xóa bảng điểm: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
+
 
     private String getStudentIdByDisplay(String studentDisplay) {
         String msv = studentDisplay.split(" - ")[1];
@@ -383,6 +422,8 @@ public class TranscriptPanel extends JPanel {
                     fireEditingStopped();
                     int row = transcriptTable.getSelectedRow();
                     deleteTranscript(row);
+                    loadTranscripts();
+                    loadStudentAndSemesterData();
                 }
             });
         }
