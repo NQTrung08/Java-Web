@@ -6,6 +6,7 @@ import main.java.com.TLU.studentmanagement.controller.UserController;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -245,42 +246,15 @@ public class TranscriptPanel extends JPanel {
         ).setVisible(true);
     }
 
-        private void deleteTranscript(int row) {
+    private void deleteTranscript(int row) {
         loadStudentAndSemesterData(); // Đảm bảo dữ liệu đã được nạp
 
         // Lấy thông tin từ bảng
-        String studentDisplay = (String) tableModel.getValueAt(row, 0);
-        String semesterDisplay = (String) tableModel.getValueAt(row, 1);
+        String transcriptId = (String) tableModel.getValueAt(row, 1); // Lấy transcriptId từ cột thứ 2
 
-//        System.out.println("Student Display: " + studentDisplay);
-//        System.out.println("Semester Display: " + semesterDisplay);
-
-        // Tìm ID của sinh viên và học kỳ từ dữ liệu hiển thị
-        String studentId = getStudentIdByDisplay(studentDisplay);
-        String semesterId = getSemesterIdByDisplay(semesterDisplay);
-//        System.out.println("Student ID: " + studentId);
-//        System.out.println("Semester ID: " + semesterId);
-
-        // Xác nhận rằng chúng ta có được ID sinh viên và học kỳ hợp lệ
-        if (studentId == null || semesterId == null) {
-            JOptionPane.showMessageDialog(null, "Không thể xác định ID sinh viên hoặc học kỳ.");
-            return;
-        }
-
-        // Lấy đối tượng Transcript từ controller
-        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
-
-        if (transcript == null) {
-            JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm để xóa.");
-            return;
-        }
-
-//        System.out.println("Transcript Found: " + transcript);
-//        System.out.println("Transcript ID: " + transcript.getId());
-
-//         Kiểm tra ID có hợp lệ không
-        if (transcript.getId() == null || transcript.getId().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "ID bảng điểm không hợp lệ.");
+        // Xác nhận rằng chúng ta có được transcriptId hợp lệ
+        if (transcriptId == null || transcriptId.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Không thể xác định ID bảng điểm.");
             return;
         }
 
@@ -288,14 +262,16 @@ public class TranscriptPanel extends JPanel {
         int confirm = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn muốn xóa bảng điểm này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                transcriptController.deleteTranscript(transcript.getId());
-                loadTranscripts();
+                transcriptController.deleteTranscript(transcriptId);
+                loadTranscripts(); // Tải lại danh sách bảng điểm sau khi xóa
+                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Xóa bảng điểm thành công.");
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Lỗi khi xóa bảng điểm: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
+
 
 
     private String getStudentIdByDisplay(String studentDisplay) {
