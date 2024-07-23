@@ -90,7 +90,7 @@ public class TranscriptPanel extends JPanel {
         containerPanel.setLayout(new BorderLayout());
         containerPanel.add(topPanel, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new Object[]{"Sinh viên", "Học kỳ", "Thao tác"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"STT", "ID", "Sinh viên", "Học kỳ", "Thao tác"}, 0);
         transcriptTable = new JTable(tableModel) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -112,9 +112,15 @@ public class TranscriptPanel extends JPanel {
         transcriptTable.getColumn("Thao tác").setCellRenderer(new ButtonRenderer());
         transcriptTable.getColumn("Thao tác").setCellEditor(new ButtonEditor(new JCheckBox()));
 
+        // Ẩn cột ID
+        transcriptTable.getColumnModel().getColumn(1).setMinWidth(0);
+        transcriptTable.getColumnModel().getColumn(1).setMaxWidth(0);
+        transcriptTable.getColumnModel().getColumn(1).setWidth(0);
+
         containerPanel.add(new JScrollPane(transcriptTable), BorderLayout.CENTER);
         add(containerPanel, BorderLayout.CENTER);
     }
+
 
     private void loadStudentAndSemesterData() {
         try {
@@ -128,16 +134,23 @@ public class TranscriptPanel extends JPanel {
     public void loadTranscripts() {
         List<Transcript> transcripts = transcriptController.getAllTranscripts();
         tableModel.setRowCount(0);
+        int stt = 1; // Khởi tạo số thứ tự
+
         for (Transcript transcript : transcripts) {
             String studentName = getStudentNameById(transcript.getStudentId());
             String semesterName = getSemesterNameById(transcript.getSemesterId());
+
             tableModel.addRow(new Object[]{
+                    stt++, // Thêm số thứ tự vào cột đầu tiên
+                    transcript.getId(), // Thêm transcriptId vào đây
                     studentName,
                     semesterName,
                     "Xem"
             });
         }
     }
+
+
 
     private String getStudentNameById(String studentId) {
         for (User student : students) {
@@ -197,25 +210,24 @@ public class TranscriptPanel extends JPanel {
     }
 
     private void viewTranscript(int row) {
-        String studentDisplay = (String) tableModel.getValueAt(row, 0);
-        String semesterDisplay = (String) tableModel.getValueAt(row, 1);
-        String studentId = getStudentIdByDisplay(studentDisplay);
-        String semesterId = getSemesterIdByDisplay(semesterDisplay);
-        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
-
-//        System.out.println("transcriptId view detail: " + transcript.getId());
+        String transcriptId = (String) tableModel.getValueAt(row, 1); // Lấy transcriptId từ cột thứ 3
+        System.out.println(transcriptId);
+        Transcript transcript = transcriptController.getTranscriptById(transcriptId);
 
         if (transcript == null) {
-            JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm cho sinh viên và kỳ học được chọn.");
+            JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm cho ID này.");
             return;
         }
+
         JFrame frame = new JFrame("Chi tiết bảng điểm");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(800, 600);
         TranscriptDetail transcriptDetailPanel = new TranscriptDetail(transcript);
+        System.out.println(transcript.toString());
         frame.add(transcriptDetailPanel);
         frame.setVisible(true);
     }
+
 
     private void editTranscript(int row) {
         String studentDisplay = (String) tableModel.getValueAt(row, 0);
@@ -253,7 +265,6 @@ public class TranscriptPanel extends JPanel {
         // Tìm ID của sinh viên và học kỳ từ dữ liệu hiển thị
         String studentId = getStudentIdByDisplay(studentDisplay);
         String semesterId = getSemesterIdByDisplay(semesterDisplay);
-
 //        System.out.println("Student ID: " + studentId);
 //        System.out.println("Semester ID: " + semesterId);
 
@@ -446,6 +457,7 @@ public class TranscriptPanel extends JPanel {
             return null;
         }
     }
+
 }
 
 

@@ -142,9 +142,22 @@ public class Transcript {
     @Override
     public String toString() {
         return "Transcript{" +
-                "studentId='" + studentId + '\'' +
+                "id='" + id + '\'' +
+                ", studentId='" + studentId + '\'' +
+                ", studentName='" + studentName + '\'' +
                 ", semesterId='" + semesterId + '\'' +
+                ", semesterName='" + semesterName + '\'' +
+                ", course='" + course + '\'' +
+                ", midScore=" + midScore +
+                ", finalScore=" + finalScore +
+                ", averageScore=" + averageScore +
+                ", status='" + status + '\'' +
+                ", deleted=" + deleted +
+                ", createdAt='" + createdAt + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                ", grades=" + grades +
                 '}';
     }
+
 
 }
