@@ -199,6 +199,68 @@ public class ScoreReportPanel extends JPanel {
         worker.execute();
     }
 
+//    private void fetchTranscriptData() {
+//        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+//            @Override
+//            protected Void doInBackground() throws Exception {
+//                try {
+//                    // Lấy thông tin học kỳ được chọn
+//                    String selectedSemester = (String) semesterComboBox.getSelectedItem();
+//                    String semesterId = "Tất cả".equals(selectedSemester) ? null : getSemesterIdFromComboBox(selectedSemester);
+//
+//                    // Lấy ID người dùng từ UserSession
+//                    User user = UserSession.getUser();
+//                    String userId = user != null ? user.getId() : null;
+//
+//                    if (userId != null) {
+//                        // Gọi API để lấy dữ liệu điểm
+//                        String url = "http://localhost:8080/api/transcript/student/" + userId;
+//                        if (semesterId != null) {
+//                            url += "/semester/" + semesterId;
+//                        }
+//
+//                        String response = HttpUtil.sendGet(url);
+//                        JSONObject jsonResponse = new JSONObject(response);
+//                        JSONArray transcriptData = jsonResponse.getJSONArray("data");
+//
+//                        // Clear existing rows
+//                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                        model.setRowCount(0);
+//
+//                        // Thêm dữ liệu mới vào bảng
+//                        for (int i = 0; i < transcriptData.length(); i++) {
+//                            JSONObject item = transcriptData.getJSONObject(i);
+//                            model.addRow(new Object[]{
+//                                    i + 1,
+//                                    item.getString("courseCode"),
+//                                    item.getString("courseName"),
+//                                    item.getInt("credit"),
+//                                    item.getFloat("midScore"),
+//                                    item.getFloat("finalScore"),
+//                                    item.getDouble("averageScore"),
+//                                    item.getString("status")
+//                            });
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                return null;
+//            }
+//
+//            @Override
+//            protected void done() {
+//                try {
+//                    get();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//        worker.execute();
+//    }
+
+
     private void fetchTranscriptData() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
@@ -214,32 +276,59 @@ public class ScoreReportPanel extends JPanel {
 
                     if (userId != null) {
                         // Gọi API để lấy dữ liệu điểm
-                        String url = "http://localhost:8080/api/transcript/student/" + userId;
-                        if (semesterId != null) {
-                            url += "/semester/" + semesterId;
+                        String url;
+                        boolean isAllSemesters = semesterId == null;
+                        if (isAllSemesters) {
+                            // Gọi API để lấy tất cả điểm
+                            url = "http://localhost:8080/api/transcript/student/" + userId;
+                        } else {
+                            // Gọi API để lấy điểm của học kỳ cụ thể
+                            url = "http://localhost:8080/api/transcript/student/" + userId + "/semester/" + semesterId;
                         }
 
                         String response = HttpUtil.sendGet(url);
                         JSONObject jsonResponse = new JSONObject(response);
-                        JSONArray transcriptData = jsonResponse.getJSONArray("data");
+                        JSONArray transcriptDataArray = jsonResponse.getJSONArray("data");
 
                         // Clear existing rows
                         DefaultTableModel model = (DefaultTableModel) table.getModel();
                         model.setRowCount(0);
 
-                        // Thêm dữ liệu mới vào bảng
-                        for (int i = 0; i < transcriptData.length(); i++) {
-                            JSONObject item = transcriptData.getJSONObject(i);
-                            model.addRow(new Object[]{
-                                    i + 1,
-                                    item.getString("courseId"),
-                                    item.getString("courseName"),
-                                    item.getInt("credit"),
-                                    item.getFloat("midScore"),
-                                    item.getFloat("finalScore"),
-                                    item.getDouble("averageScore"),
-                                    item.getString("status")
-                            });
+                        if (isAllSemesters) {
+                            // Thêm dữ liệu từ API lấy tất cả điểm
+                            for (int i = 0; i < transcriptDataArray.length(); i++) {
+                                JSONObject grade = transcriptDataArray.getJSONObject(i);
+                                model.addRow(new Object[]{
+                                        i + 1,
+                                        grade.getString("courseCode"),
+                                        grade.getString("courseName"),
+                                        grade.getInt("credit"),
+                                        grade.getFloat("midScore"),
+                                        grade.getFloat("finalScore"),
+                                        grade.getDouble("averageScore"),
+                                        grade.getString("status")
+                                });
+                            }
+                        } else {
+                            // Thêm dữ liệu từ API lấy điểm của học kỳ cụ thể
+                            for (int i = 0; i < transcriptDataArray.length(); i++) {
+                                JSONObject transcriptData = transcriptDataArray.getJSONObject(i);
+                                JSONArray grades = transcriptData.getJSONArray("grades");
+
+                                for (int j = 0; j < grades.length(); j++) {
+                                    JSONObject grade = grades.getJSONObject(j);
+                                    model.addRow(new Object[]{
+                                            j + 1,
+                                            grade.getString("courseCode"),
+                                            grade.getString("courseName"),
+                                            grade.getInt("credit"),
+                                            grade.getFloat("midScore"),
+                                            grade.getFloat("finalScore"),
+                                            grade.getDouble("averageScore"),
+                                            grade.getString("status")
+                                    });
+                                }
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -259,6 +348,8 @@ public class ScoreReportPanel extends JPanel {
         };
         worker.execute();
     }
+
+
 
 
     private String getSemesterIdFromComboBox(String semesterComboBoxItem) {

@@ -7,7 +7,7 @@ public class Course {
     private boolean deleted;
     private String name;
     private String code;
-    private int credit;
+    private Integer credit;
     private String majorId; // Thêm thuộc tính majorId
     private String createdAt;
     private String updatedAt;
@@ -25,14 +25,6 @@ public class Course {
         this.updatedAt = updatedAt;
     }
 
-    public Course(String id, String name, String code, int credit, String majorId, String createdAt) {
-        this.id = id;
-        this.name = name;
-        this.code = code;
-        this.credit = credit;
-        this.majorId = majorId; // Thêm thuộc tính majorId
-        this.createdAt = createdAt;
-    }
 
     // Getters and Setters
 
@@ -68,11 +60,11 @@ public class Course {
         this.code = code;
     }
 
-    public int getCredit() {
+    public Integer getCredit() {
         return credit;
     }
 
-    public void setCredit(int credit) {
+    public void setCredit(Integer credit) {
         this.credit = credit;
     }
 
@@ -85,15 +77,10 @@ public class Course {
     }
 
 
+
+
     @Override
     public String toString() {
-        return "Course{" +
-                "id='" + id + '\'' +
-                ", deleted=" + deleted +
-                ", name='" + name + '\'' +
-                ", code='" + code + '\'' +
-                ", credit=" + credit +
-                ", majorId='" + majorId + '\'' + // Thêm majorId vào phương thức toString
-                '}';
+        return name; // Only return the name for display in JComboBox
     }
 }

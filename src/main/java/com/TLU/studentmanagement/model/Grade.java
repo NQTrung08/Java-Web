@@ -4,48 +4,29 @@ public class Grade {
     private String id;
     private String studentId;
     private String studentName;
-    private double midScore;
-    private double finalScore;
-    private double gpa;
-    private String status;
     private String transcriptId;
     private String courseId;
-    private String course;
+    private double midScore;
+    private double finalScore;
     private double averageScore;
+    private double gpa;
+    private String status;
+    private Course course; // Thông tin khóa học liên quan
+    private String courseName;
+    private String courseCode;
 
-    public String getCourse() {
-        return course;
-    }
-
-    public void setCourse(String course) {
-        this.course = course;
-    }
-
-    public double getAverageScore() {
-        return averageScore;
-    }
-
-    public void setAverageScore(double averageScore) {
-        this.averageScore = averageScore;
-    }
-
+    // Constructor mặc định
     public Grade() {}
-
-    public Grade(String courseId, double midScore, double finalScore, String transcriptId) {
-        this.courseId = courseId;
-        this.midScore = midScore;
-        this.finalScore = finalScore;
-        this.transcriptId = transcriptId;
-    }
 
     public Grade(String id, String courseId, String transcriptId, double midScore, double finalScore) {
         this.id = id;
         this.courseId = courseId;
+        this.transcriptId = transcriptId;
         this.midScore = midScore;
         this.finalScore = finalScore;
-        this.transcriptId = transcriptId;
     }
 
+    // Getter và setter
     public String getId() {
         return id;
     }
@@ -70,38 +51,6 @@ public class Grade {
         this.studentName = studentName;
     }
 
-    public double getMidScore() {
-        return midScore;
-    }
-
-    public void setMidScore(double midtermScore) {
-        this.midScore = midtermScore;
-    }
-
-    public double getFinalScore() {
-        return finalScore;
-    }
-
-    public void setFinalScore(double finalScore) {
-        this.finalScore = finalScore;
-    }
-
-    public double getGpa() {
-        return gpa;
-    }
-
-    public void setGpa(double gpa) {
-        this.gpa = gpa;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public String getTranscriptId() {
         return transcriptId;
     }
@@ -117,4 +66,79 @@ public class Grade {
     public void setCourseId(String courseId) {
         this.courseId = courseId;
     }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
+    public double getMidScore() {
+        return midScore;
+    }
+
+    public void setMidScore(double midScore) {
+        this.midScore = midScore;
+    }
+
+    public double getFinalScore() {
+        return finalScore;
+    }
+
+    public void setFinalScore(double finalScore) {
+        this.finalScore = finalScore;
+    }
+
+    public double getAverageScore() {
+        return averageScore;
+    }
+
+    public void setAverageScore(double averageScore) {
+        this.averageScore = averageScore;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    @Override
+    public String toString() {
+        return "Grade{" +
+                "id='" + id + '\'' +
+                ", studentId='" + studentId + '\'' +
+                ", studentName='" + studentName + '\'' +
+                ", transcriptId='" + transcriptId + '\'' +
+                ", courseId='" + courseId + '\'' +
+                ", midScore=" + midScore +
+                ", finalScore=" + finalScore +
+                ", averageScore=" + averageScore +
+                ", gpa=" + gpa +
+                ", status='" + status + '\'' +
+                ", courseName='" + courseName + '\'' +
+                ", courseCode='" + courseCode + '\'' +
+                '}';
+    }
+
 }

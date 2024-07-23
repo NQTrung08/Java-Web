@@ -11,6 +11,7 @@ public class HttpUtil {
     private static String accessToken = "";
     private static String refreshToken = "";
     private static boolean refreshingToken = false;
+    private static String lastResponse = "";
 
     // Cập nhật accessToken và refreshToken
     public static void setTokens(String accessToken, String refreshToken) {
@@ -18,7 +19,7 @@ public class HttpUtil {
         HttpUtil.refreshToken = refreshToken;
     }
 
-    // Phương thức chung cho tất cả các yêu cầu HTTP có token
+
     private static String sendRequest(String apiUrl, String method, String requestData, String token) throws Exception {
         URL url = new URL(apiUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -46,12 +47,17 @@ public class HttpUtil {
                 response.append(inputLine);
             }
             in.close();
-            return response.toString();
+            lastResponse = response.toString(); // Cập nhật phản hồi cuối cùng
+            return lastResponse;
         } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             throw new RuntimeException("Unauthorized");
         } else {
             throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage());
         }
+    }
+
+    public static String getLastResponse() {
+        return lastResponse;
     }
 
 
