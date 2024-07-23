@@ -85,15 +85,20 @@ public class Course {
     }
 
 
+//    @Override
+//    public String toString() {
+//        return "Course{" +
+//                "id='" + id + '\'' +
+//                ", deleted=" + deleted +
+//                ", name='" + name + '\'' +
+//                ", code='" + code + '\'' +
+//                ", credit=" + credit +
+//                ", majorId='" + majorId + '\'' + // Thêm majorId vào phương thức toString
+//                '}';
+//    }
+
     @Override
     public String toString() {
-        return "Course{" +
-                "id='" + id + '\'' +
-                ", deleted=" + deleted +
-                ", name='" + name + '\'' +
-                ", code='" + code + '\'' +
-                ", credit=" + credit +
-                ", majorId='" + majorId + '\'' + // Thêm majorId vào phương thức toString
-                '}';
+        return name; // Only return the name for display in JComboBox
     }
 }
