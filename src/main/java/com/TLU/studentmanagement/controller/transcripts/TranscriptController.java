@@ -1,5 +1,6 @@
 package main.java.com.TLU.studentmanagement.controller.transcripts;
 
+import com.google.gson.Gson;
 import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
@@ -259,13 +260,8 @@ public class TranscriptController {
     public List<Transcript> searchTranscripts(String keyword) {
         List<Transcript> transcripts = new ArrayList<>();
 
-        System.out.println("keyword: " + keyword);
-
         try {
             String url = BASE_URL + "/search?keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString());
-
-            System.out.println("url: " + url);
-
             String response = HttpUtil.sendPost(url, null);
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray jsonArray = jsonResponse.getJSONArray("data");
@@ -291,6 +287,5 @@ public class TranscriptController {
         }
         return transcripts;
     }
-
 
 }
