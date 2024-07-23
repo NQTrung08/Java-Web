@@ -25,14 +25,6 @@ public class Course {
         this.updatedAt = updatedAt;
     }
 
-    public Course(String id, String name, String code, int credit, String majorId, String createdAt) {
-        this.id = id;
-        this.name = name;
-        this.code = code;
-        this.credit = credit;
-        this.majorId = majorId; // Thêm thuộc tính majorId
-        this.createdAt = createdAt;
-    }
 
     // Getters and Setters
 
@@ -85,17 +77,7 @@ public class Course {
     }
 
 
-//    @Override
-//    public String toString() {
-//        return "Course{" +
-//                "id='" + id + '\'' +
-//                ", deleted=" + deleted +
-//                ", name='" + name + '\'' +
-//                ", code='" + code + '\'' +
-//                ", credit=" + credit +
-//                ", majorId='" + majorId + '\'' + // Thêm majorId vào phương thức toString
-//                '}';
-//    }
+
 
     @Override
     public String toString() {

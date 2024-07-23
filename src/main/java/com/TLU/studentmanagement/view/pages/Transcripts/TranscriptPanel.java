@@ -219,20 +219,38 @@ public class TranscriptPanel extends JPanel {
     }
 
     private void viewTranscript(int row) {
-        String transcriptId = (String) tableModel.getValueAt(row, 1); // Lấy transcriptId từ cột thứ 3
+        // Lấy transcriptId từ cột thứ 1
+        String transcriptId = (String) tableModel.getValueAt(row, 1);
+
+        // Lấy Transcript từ controller
         Transcript transcript = transcriptController.getTranscriptById(transcriptId);
 
+        // Kiểm tra nếu transcript không tồn tại
         if (transcript == null) {
             JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm cho ID này.");
             return;
         }
 
-        // Xóa nội dung hiện tại của detailPanel
-        detailPanel.removeAll();
-        detailPanel.add(new TranscriptDetail(transcript), BorderLayout.CENTER);
-        detailPanel.revalidate();
-        detailPanel.repaint();
+        // Lấy JFrame làm parent của JDialog
+        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+
+        // Tạo một JDialog modal
+        JDialog dialog = new JDialog(parentFrame, "Chi tiết bảng điểm", true);
+        dialog.setLayout(new BorderLayout());
+
+        // Tạo và thêm TranscriptDetail vào dialog
+        TranscriptDetail transcriptDetailPanel = new TranscriptDetail(transcript);
+        dialog.add(transcriptDetailPanel, BorderLayout.CENTER);
+
+        // Thiết lập kích thước và vị trí của dialog
+        dialog.setSize(800, 600); // Có thể thay đổi kích thước tùy thuộc vào yêu cầu
+        dialog.setLocationRelativeTo(parentFrame); // Đặt vị trí của dialog
+
+        // Hiển thị dialog
+        dialog.setVisible(true);
     }
+
+
 
 
     private void editTranscript(int row) {

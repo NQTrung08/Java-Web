@@ -5,7 +5,6 @@ import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
 import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.Transcript;
-import main.java.com.TLU.studentmanagement.view.pages.Transcripts.TranscriptDetail;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,13 +14,14 @@ import java.util.List;
 
 public class AddGradeForm extends JDialog {
     private GradeController gradeController;
-    private CourseController courseController; // Add course controller
+    private CourseController courseController;
     private JComboBox<Course> courseComboBox;
     private JTextField midScoreField;
     private JTextField finalScoreField;
     private JButton submitButton;
     private JButton cancelButton;
     private Transcript transcript;
+    private Grade newGrade; // Thêm thuộc tính để lưu điểm mới
 
     public AddGradeForm(Frame owner, GradeController gradeController, CourseController courseController, Transcript transcript) {
         super(owner, "Thêm điểm", true);
@@ -30,6 +30,10 @@ public class AddGradeForm extends JDialog {
         this.transcript = transcript;
         initUI();
         loadCourses();
+    }
+
+    public AddGradeForm() {
+
     }
 
     private void initUI() {
@@ -76,9 +80,7 @@ public class AddGradeForm extends JDialog {
 
     private void loadCourses() {
         try {
-            // Use CourseController to fetch courses
             List<Course> courses = courseController.getAllCourses();
-//            System.out.println("courses: " + courses);
             for (Course course : courses) {
                 courseComboBox.addItem(course);
             }
@@ -94,22 +96,22 @@ public class AddGradeForm extends JDialog {
             double midScore = Double.parseDouble(midScoreField.getText());
             double finalScore = Double.parseDouble(finalScoreField.getText());
 
-            Grade newGrade = new Grade();
+            newGrade = new Grade();
             newGrade.setCourseId(selectedCourse.getId());
             newGrade.setTranscriptId(transcript.getId());
             newGrade.setMidScore(midScore);
             newGrade.setFinalScore(finalScore);
             newGrade.setAverageScore(midScore * 0.3 + finalScore * 0.7);
 
-            // Use GradeController to create a new grade
             gradeController.createGrade(newGrade);
-
-            // Update the table in TranscriptDetail
-            TranscriptDetail.loadTableData();
 
             dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Điểm không hợp lệ. Vui lòng nhập lại.");
         }
+    }
+
+    public Grade getNewGrade() {
+        return newGrade;
     }
 }

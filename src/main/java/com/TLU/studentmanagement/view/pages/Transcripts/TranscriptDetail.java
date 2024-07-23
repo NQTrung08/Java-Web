@@ -6,7 +6,6 @@ import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Grade;
-import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.view.pages.Grades.AddGradeForm;
 
 import javax.swing.*;
@@ -18,7 +17,7 @@ import java.awt.event.ActionListener;
 public class TranscriptDetail extends JPanel {
     private TranscriptController transcriptController;
     private GradeController gradeController;
-    private CourseController courseController; // Add this
+    private CourseController courseController;
     private static Transcript transcript;
     private JTable gradeTable;
     private static DefaultTableModel tableModel;
@@ -27,8 +26,7 @@ public class TranscriptDetail extends JPanel {
         this.transcript = transcript;
         this.transcriptController = new TranscriptController();
         this.gradeController = new GradeController();
-        this.courseController = new CourseController(); // Initialize this
-//        loadTableData();
+        this.courseController = new CourseController();
         initUI();
     }
 
@@ -36,7 +34,7 @@ public class TranscriptDetail extends JPanel {
         setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("Bảng điểm sinh viên "+ transcript.getStudentName() + " - " + transcript.getStudentCode(), SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Bảng điểm sinh viên " + transcript.getStudentName() + " - " + transcript.getStudentCode(), SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         topPanel.add(titleLabel, BorderLayout.CENTER);
@@ -52,7 +50,7 @@ public class TranscriptDetail extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        String[] columnNames = {"Số thứ tự","Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
+        String[] columnNames = {"Số thứ tự", "Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
         tableModel = new DefaultTableModel(columnNames, 0);
         gradeTable = new JTable(tableModel);
         gradeTable.setRowHeight(40);
@@ -67,13 +65,7 @@ public class TranscriptDetail extends JPanel {
         add(new JScrollPane(gradeTable), BorderLayout.CENTER);
     }
 
-    private void showAddGradeForm() {
-        JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        AddGradeForm addGradeForm = new AddGradeForm(parentFrame, gradeController, courseController, transcript);
-        addGradeForm.setVisible(true);
-    }
-
-    public static void loadTableData() {
+    public void loadTableData() {
         tableModel.setRowCount(0); // Xóa tất cả các hàng hiện tại
 
         for (int i = 0; i < transcript.getGrades().size(); i++) {
@@ -82,7 +74,7 @@ public class TranscriptDetail extends JPanel {
 
             try {
                 // Lấy thông tin khóa học từ API bằng courseId
-                course = CourseController.getCourseById(grade.getCourseId());
+                course = courseController.getCourseById(grade.getCourseId());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -97,7 +89,7 @@ public class TranscriptDetail extends JPanel {
                     i + 1,
                     course.getCode() != null ? course.getCode() : "Không có thông tin",
                     course.getName() != null ? course.getName() : "Không có thông tin",
-                    course.getCredit() != null ? course.getCredit() : "Không có thông tin", // Sử dụng giá trị mặc định cho Integer
+                    course.getCredit() != null ? course.getCredit() : "Không có thông tin",
                     grade.getMidScore(),
                     grade.getFinalScore(),
                     grade.getAverageScore(),
@@ -107,9 +99,130 @@ public class TranscriptDetail extends JPanel {
         }
     }
 
+    private void showAddGradeForm() {
+        // Tạo panel chính cho form thêm điểm
+        JPanel formPanel = new JPanel(new GridLayout(5, 2));
+
+        // Tạo JComboBox để chọn mã môn
+        JComboBox<Course> courseComboBox = new JComboBox<>();
+        // Thêm các mã môn vào JComboBox
+        try {
+            for (Course course : CourseController.getAllCourses()) {
+//                System.out.println(course.getCode());
+                courseComboBox.addItem(course);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Tạo JTextField để hiển thị tên môn
+        JTextField courseCodeField = new JTextField();
+        courseCodeField.setEditable(false);
+
+        // Tạo JTextField để nhập điểm giữa kỳ
+        JTextField midScoreField = new JTextField();
+
+        // Tạo JTextField để nhập điểm cuối kỳ
+        JTextField finalScoreField = new JTextField();
+
+        // Thêm các thành phần vào panel
+        formPanel.add(new JLabel("Tên môn:"));
+        formPanel.add(courseComboBox);
+        formPanel.add(new JLabel("Mã môn:"));
+        formPanel.add(courseCodeField);
+        formPanel.add(new JLabel("Điểm giữa kỳ:"));
+        formPanel.add(midScoreField);
+        formPanel.add(new JLabel("Điểm cuối kỳ:"));
+        formPanel.add(finalScoreField);
+
+        // Tạo JDialog để hiển thị form thêm điểm
+        JDialog addGradeDialog = new JDialog((Frame) null, "Thêm điểm", true);
+        addGradeDialog.setSize(400, 300);
+        addGradeDialog.setLocationRelativeTo(this);
+
+        // Thêm panel vào dialog
+        addGradeDialog.add(formPanel, BorderLayout.CENTER);
+
+        // Thêm nút xác nhận và hủy
+        JPanel buttonPanel = new JPanel();
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Hủy");
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+        addGradeDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Xử lý sự kiện khi chọn mã môn
+        courseComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Course selectedCourse = (Course) courseComboBox.getSelectedItem();
+                if (selectedCourse != null) {
+                    courseCodeField.setText(selectedCourse.getCode());
+                }
+            }
+        });
+
+        // Xử lý sự kiện khi nhấn nút OK
+        okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Course selectedCourse = (Course) courseComboBox.getSelectedItem();
+                if (selectedCourse == null) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng chọn mã môn.");
+                    return;
+                }
+
+                double midScore;
+                double finalScore;
+
+                try {
+                    midScore = Double.parseDouble(midScoreField.getText());
+                    finalScore = Double.parseDouble(finalScoreField.getText());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Điểm không hợp lệ. Vui lòng nhập lại.");
+                    return;
+                }
+
+                Grade newGrade = new Grade();
+                newGrade.setCourseName(selectedCourse.getName());
+                newGrade.setCourseCode(selectedCourse.getCode());
+                newGrade.setMidScore(midScore);
+                newGrade.setFinalScore(finalScore);
+                newGrade.setAverageScore((midScore * 0.3) + (finalScore * 0.7));
+
+                // Thêm điểm vào danh sách điểm của bảng điểm
+                transcript.getGrades().add(newGrade);
+
+                // Cập nhật điểm trên server
+                try {
+                    gradeController.createGrade(newGrade); // Thêm điểm qua controller
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                // Tải lại dữ liệu bảng điểm
+                loadTableData();
+
+                // Đóng dialog
+                addGradeDialog.dispose();
+            }
+        });
+
+        // Xử lý sự kiện khi nhấn nút Hủy
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addGradeDialog.dispose();
+            }
+        });
+
+        // Hiển thị dialog
+        addGradeDialog.setVisible(true);
+    }
 
 
 
+    // Lớp ButtonRenderer để hiển thị các nút trong cột hành động
     class ButtonRenderer extends JPanel implements javax.swing.table.TableCellRenderer {
         private JButton editButton;
         private JButton deleteButton;
@@ -129,6 +242,7 @@ public class TranscriptDetail extends JPanel {
         }
     }
 
+    // Lớp ButtonEditor để xử lý sự kiện của các nút trong cột hành động
     class ButtonEditor extends DefaultCellEditor {
         private JPanel panel;
         private JButton editButton;

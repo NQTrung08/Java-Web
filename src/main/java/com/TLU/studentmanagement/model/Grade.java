@@ -13,6 +13,7 @@ public class Grade {
     private String status;
     private Course course; // Thông tin khóa học liên quan
     private String courseName;
+    private String courseCode;
 
     // Constructor mặc định
     public Grade() {}
@@ -81,6 +82,14 @@ public class Grade {
         this.courseId = courseId;
     }
 
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
     public double getMidScore() {
         return midScore;
     }
@@ -103,14 +112,6 @@ public class Grade {
 
     public void setAverageScore(double averageScore) {
         this.averageScore = averageScore;
-    }
-
-    public double getGpa() {
-        return gpa;
-    }
-
-    public void setGpa(double gpa) {
-        this.gpa = gpa;
     }
 
     public String getStatus() {
