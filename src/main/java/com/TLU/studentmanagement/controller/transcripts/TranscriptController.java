@@ -19,6 +19,7 @@ import java.util.List;
 public class TranscriptController {
 
     private static final String BASE_URL = "http://localhost:8080/api/transcript";
+    private String transcriptId;
 
     public List<Transcript> getAllTranscripts() {
         List<Transcript> transcripts = new ArrayList<>();
@@ -41,6 +42,9 @@ public class TranscriptController {
                     }
                     if (studentJson.has("fullname")) {
                         transcript.setStudentName(studentJson.getString("fullname"));
+                    }
+                    if (studentJson.has("msv")) {
+                        transcript.setStudentCode(studentJson.getString("msv"));
                     }
                 }
 
@@ -94,7 +98,7 @@ public class TranscriptController {
             for (int i = 0; i < gradesArray.length(); i++) {
                 JSONObject gradeJson = gradesArray.getJSONObject(i);
                 Grade grade = new Grade();
-                grade.setCourse(gradeJson.getString("course"));
+                grade.setCourseId(gradeJson.getString("course"));
                 grade.setMidScore(gradeJson.getDouble("midScore"));
                 grade.setFinalScore(gradeJson.getDouble("finalScore"));
                 grade.setAverageScore(gradeJson.getDouble("averageScore"));
@@ -166,7 +170,7 @@ public class TranscriptController {
 
                     Grade grade = new Grade();
                     grade.setId(jsonGrade.getString("gradeId"));
-                    grade.setCourse(jsonGrade.getString("courseName"));
+                    grade.setCourseName(jsonGrade.getString("courseName"));
                     grade.setMidScore(jsonGrade.getDouble("midScore"));
                     grade.setFinalScore(jsonGrade.getDouble("finalScore"));
                     grade.setAverageScore(jsonGrade.getDouble("averageScore"));
@@ -192,13 +196,11 @@ public class TranscriptController {
             jsonTranscript.put("studentId", transcript.getStudentId());
             jsonTranscript.put("semesterId", transcript.getSemesterId());
 
-//            System.out.println("studentId: " + transcript.getStudentId());
-//            System.out.println("semesterId: " + transcript.getSemesterId());
-//            System.out.println(jsonTranscript.toString());
-
+            // Gửi yêu cầu POST
             String response = HttpUtil.sendPost("http://localhost:8080/api/transcript/create", jsonTranscript.toString());
 
-//            System.out.println("Rsp: " + response);
+            // In phản hồi để kiểm tra
+            System.out.println("Response: " + response);
 
             // Kiểm tra phản hồi từ server
             if (response == null || response.isEmpty()) {
@@ -207,16 +209,59 @@ public class TranscriptController {
             }
 
             JSONObject jsonResponse = new JSONObject(response);
-            if (jsonResponse.has("code") && jsonResponse.getInt("code") == 400 && jsonResponse.getString("message").equals("Transcript already exists")) {
-                return -1; // Trùng lặp
+            if (jsonResponse.has("message")) {
+                String message = jsonResponse.getString("message");
+                if (message.equals("Transcript was deleted. Do you want to restore it?")) {
+                    // Lấy transcriptId từ phản hồi
+                    this.transcriptId = jsonResponse.getString("transcriptId");
+                    // Trả về giá trị đặc biệt để cho biết cần khôi phục
+                    return -2; // Trường hợp bảng điểm đã bị xóa và cần khôi phục
+                } else if (message.equals("Transcript already exists")) {
+                    return -1; // Trùng lặp
+                } else {
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Lỗi từ server: " + message);
+                    return 0; // Lỗi khác
+                }
             }
 
             return 1; // Thành công
         } catch (Exception e) {
             e.printStackTrace();
+            Notifications.getInstance().show(Notifications.Type.ERROR, "Lỗi không xác định: " + e.getMessage());
             return 0; // Lỗi khác
         }
     }
+
+    public String getTranscriptId() {
+        return transcriptId;
+    }
+
+
+
+    public int restoreTranscript(String transcriptId) {
+        try {
+            JSONObject jsonTranscript = new JSONObject();
+            jsonTranscript.put("transcriptId", transcriptId);
+
+            String response = HttpUtil.sendPut("http://localhost:8080/api/transcript/restore", jsonTranscript.toString());
+
+            if (response == null || response.isEmpty()) {
+                Notifications.getInstance().show(Notifications.Type.ERROR, "Không nhận được phản hồi từ server.");
+                return 0; // Lỗi do không có phản hồi
+            }
+
+            JSONObject jsonResponse = new JSONObject(response);
+            if (jsonResponse.has("message") && jsonResponse.getString("message").equals("Transcript restored")) {
+                return 1; // Thành công
+            }
+
+            return 0; // Lỗi khác
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // Lỗi khác
+        }
+    }
+
 
     public int updateTranscript(String transcriptId, Transcript transcript) {
         try {
@@ -257,15 +302,6 @@ public class TranscriptController {
         }
     }
 
-    public void restoreTranscript(String transcriptId) {
-        try {
-            JSONObject jsonRequest = new JSONObject();
-            jsonRequest.put("transcriptId", transcriptId);
-            HttpUtil.sendPut(BASE_URL + "/restore", jsonRequest.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public List<Transcript> searchTranscripts(String keyword) {
         List<Transcript> transcripts = new ArrayList<>();

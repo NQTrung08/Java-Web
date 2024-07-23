@@ -6,6 +6,7 @@ public class Transcript {
     private String id;
     private String studentId;
     private String studentName;
+    private String studentCode;
     private String semesterId;
     private String semesterName;
     private String course;
@@ -128,6 +129,14 @@ public class Transcript {
 
     public void setGrades(List<Grade> grades) {
         this.grades = grades;
+    }
+
+    public String getStudentCode() {
+        return studentCode;
+    }
+
+    public void setStudentCode(String studentCode) {
+        this.studentCode = studentCode;
     }
 
     public Transcript() {}

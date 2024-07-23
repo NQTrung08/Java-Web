@@ -3,6 +3,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Transcripts;
 import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
 import main.java.com.TLU.studentmanagement.controller.transcripts.TranscriptController;
 import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
+import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.User;
@@ -51,7 +52,7 @@ public class TranscriptDetail extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        String[] columnNames = {"Số thứ tự", "Tên môn", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
+        String[] columnNames = {"Số thứ tự","Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
         tableModel = new DefaultTableModel(columnNames, 0);
         gradeTable = new JTable(tableModel);
         gradeTable.setRowHeight(40);
@@ -77,9 +78,26 @@ public class TranscriptDetail extends JPanel {
 
         for (int i = 0; i < transcript.getGrades().size(); i++) {
             Grade grade = transcript.getGrades().get(i);
+            Course course = null;
+
+            try {
+                // Lấy thông tin khóa học từ API bằng courseId
+                course = CourseController.getCourseById(grade.getCourseId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Đảm bảo course không bị null
+            if (course == null) {
+                course = new Course(); // Tạo đối tượng Course rỗng để tránh NullPointerException
+            }
+
+            // Tạo dữ liệu hàng và thêm vào tableModel
             Object[] rowData = {
                     i + 1,
-                    grade.getCourse(),
+                    course.getCode() != null ? course.getCode() : "Không có thông tin",
+                    course.getName() != null ? course.getName() : "Không có thông tin",
+                    course.getCredit() != null ? course.getCredit() : "Không có thông tin", // Sử dụng giá trị mặc định cho Integer
                     grade.getMidScore(),
                     grade.getFinalScore(),
                     grade.getAverageScore(),
@@ -88,6 +106,9 @@ public class TranscriptDetail extends JPanel {
             tableModel.addRow(rowData);
         }
     }
+
+
+
 
     class ButtonRenderer extends JPanel implements javax.swing.table.TableCellRenderer {
         private JButton editButton;

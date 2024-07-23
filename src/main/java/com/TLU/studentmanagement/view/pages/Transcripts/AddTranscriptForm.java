@@ -6,6 +6,8 @@ import main.java.com.TLU.studentmanagement.controller.UserController;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.model.User;
+import main.java.com.TLU.studentmanagement.util.HttpUtil;
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -93,22 +95,54 @@ public class AddTranscriptForm extends JDialog {
                 Transcript newTranscript = new Transcript(studentId, semesterId);
                 int result = transcriptController.createTranscript(newTranscript);
 
-                if (result == 1) {
-                    parentPanel.loadTranscripts(); // Tải lại danh sách bảng điểm trong panel cha
-                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm bảng điểm thành công.");
-                    dispose(); // Đóng form
-                } else if (result == -1) {
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Bảng điểm của sinh viên đã tồn tại.");
-                } else {
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể thêm bảng điểm. Vui lòng thử lại sau.");
+                switch (result) {
+                    case 1:
+                        Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm bảng điểm thành công.");
+                        parentPanel.loadTranscripts(); // Tải lại danh sách bảng điểm trong panel cha
+                        dispose(); // Đóng form
+                        break;
+
+                    case -1:
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Bảng điểm đã tồn tại.");
+                        break;
+
+                    case -2:
+                        // Phục hồi bảng điểm
+                        String transcriptId = transcriptController.getTranscriptId(); // Giả định phương thức để lấy transcriptId
+
+                        int responseOption = JOptionPane.showConfirmDialog(
+                                this,
+                                "Bảng điểm đã bị xóa. Bạn có muốn khôi phục không?",
+                                "Khôi phục bảng điểm",
+                                JOptionPane.YES_NO_OPTION
+                        );
+
+                        if (responseOption == JOptionPane.YES_OPTION) {
+                            int restoreResult = transcriptController.restoreTranscript(transcriptId);
+
+                            if (restoreResult == 1) {
+                                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Bảng điểm đã được khôi phục.");
+                                parentPanel.loadTranscripts(); // Tải lại danh sách bảng điểm trong panel cha
+                                dispose(); // Đóng form
+                            } else {
+                                Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể khôi phục bảng điểm. Vui lòng thử lại sau.");
+                            }
+                        }
+                        break;
+
+                    default:
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể thêm bảng điểm. Vui lòng thử lại sau.");
+                        break;
                 }
             } else {
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Dữ liệu không hợp lệ.");
             }
         } catch (Exception e) {
+            e.printStackTrace();
             Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể thêm bảng điểm. Vui lòng thử lại sau.");
         }
     }
+
 
 
     private String getStudentIdByDisplay(String displayText) {
@@ -128,4 +162,5 @@ public class AddTranscriptForm extends JDialog {
         }
         return null;
     }
+
 }

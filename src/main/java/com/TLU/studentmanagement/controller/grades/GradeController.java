@@ -1,6 +1,8 @@
 package main.java.com.TLU.studentmanagement.controller.grades;
 
+import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.model.Grade;
+import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,6 +13,7 @@ import java.util.List;
 public class GradeController {
 
     private static final String BASE_URL = "http://localhost:8080/api/grade";
+    private CourseController courseController = new CourseController(); // Khởi tạo CourseController
 
     public List<Grade> getAllGrades() {
         List<Grade> grades = new ArrayList<>();
@@ -26,6 +29,9 @@ public class GradeController {
                         jsonGrade.getDouble("midScore"),
                         jsonGrade.getDouble("finalScore")
                 );
+                // Lấy thông tin khóa học và gán vào đối tượng Grade
+                Course course = courseController.getCourseById(grade.getCourseId());
+                grade.setCourse(course);
                 grades.add(grade);
             }
         } catch (Exception e) {
@@ -38,13 +44,17 @@ public class GradeController {
         try {
             String response = HttpUtil.sendGet(BASE_URL + "/" + id);
             JSONObject jsonGrade = new JSONObject(response);
-            return new Grade(
+            Grade grade = new Grade(
                     jsonGrade.getString("_id"),
                     jsonGrade.getString("courseId"),
                     jsonGrade.getString("transcriptId"),
                     jsonGrade.getDouble("midScore"),
                     jsonGrade.getDouble("finalScore")
             );
+            // Lấy thông tin khóa học và gán vào đối tượng Grade
+            Course course = courseController.getCourseById(grade.getCourseId());
+            grade.setCourse(course);
+            return grade;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,11 +77,8 @@ public class GradeController {
     public void updateGrade(String gradeId, Grade grade) {
         try {
             JSONObject jsonGrade = new JSONObject();
-//            jsonGrade.put("courseId", grade.getCourseId());
-//            jsonGrade.put("transcriptId", grade.getTranscriptId());
             jsonGrade.put("midScore", grade.getMidScore());
             jsonGrade.put("finalScore", grade.getFinalScore());
-
             HttpUtil.sendPut(BASE_URL + "/update/" + gradeId, jsonGrade.toString());
         } catch (Exception e) {
             e.printStackTrace();

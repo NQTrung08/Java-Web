@@ -90,7 +90,7 @@ public class TranscriptPanel extends JPanel {
         containerPanel.setLayout(new BorderLayout());
         containerPanel.add(topPanel, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new Object[]{"STT", "ID", "Sinh viên", "Học kỳ", "Thao tác"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"STT", "ID", "Mã sinh viên", "Sinh viên", "Học kỳ", "Thao tác"}, 0);
         transcriptTable = new JTable(tableModel) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -137,13 +137,13 @@ public class TranscriptPanel extends JPanel {
         int stt = 1; // Khởi tạo số thứ tự
 
         for (Transcript transcript : transcripts) {
-            String studentName = getStudentNameById(transcript.getStudentId());
             String semesterName = getSemesterNameById(transcript.getSemesterId());
 
             tableModel.addRow(new Object[]{
                     stt++, // Thêm số thứ tự vào cột đầu tiên
                     transcript.getId(), // Thêm transcriptId vào đây
-                    studentName,
+                    transcript.getStudentCode(), // Mã sinh viên
+                    transcript.getStudentName(), // Tên sinh viên
                     semesterName,
                     "Xem"
             });
@@ -152,14 +152,7 @@ public class TranscriptPanel extends JPanel {
 
 
 
-    private String getStudentNameById(String studentId) {
-        for (User student : students) {
-            if (student.getId().equals(studentId)) {
-                return student.getFullName() + " - " + student.getMsv();
-            }
-        }
-        return null;
-    }
+
 
     private String getSemesterNameById(String semesterId) {
         for (Semester semester : semesters) {
@@ -185,7 +178,7 @@ public class TranscriptPanel extends JPanel {
 
         tableModel.setRowCount(0);
         for (Transcript transcript : transcripts) {
-            String studentName = getStudentNameById(transcript.getStudentId());
+            String studentName = transcript.getStudentName();
             String semesterName = getSemesterNameById(transcript.getSemesterId());
 
             // In ra giá trị để kiểm tra

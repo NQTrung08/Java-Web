@@ -7,7 +7,7 @@ public class Course {
     private boolean deleted;
     private String name;
     private String code;
-    private int credit;
+    private Integer credit;
     private String majorId; // Thêm thuộc tính majorId
     private String createdAt;
     private String updatedAt;
@@ -68,11 +68,11 @@ public class Course {
         this.code = code;
     }
 
-    public int getCredit() {
+    public Integer getCredit() {
         return credit;
     }
 
-    public void setCredit(int credit) {
+    public void setCredit(Integer credit) {
         this.credit = credit;
     }
 

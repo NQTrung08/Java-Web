@@ -4,48 +4,43 @@ public class Grade {
     private String id;
     private String studentId;
     private String studentName;
-    private double midScore;
-    private double finalScore;
-    private double gpa;
-    private String status;
     private String transcriptId;
     private String courseId;
-    private String course;
+    private double midScore;
+    private double finalScore;
     private double averageScore;
+    private double gpa;
+    private String status;
+    private Course course; // Thông tin khóa học liên quan
+    private String courseName;
 
-    public String getCourse() {
-        return course;
-    }
-
-    public void setCourse(String course) {
-        this.course = course;
-    }
-
-    public double getAverageScore() {
-        return averageScore;
-    }
-
-    public void setAverageScore(double averageScore) {
-        this.averageScore = averageScore;
-    }
-
+    // Constructor mặc định
     public Grade() {}
-
-    public Grade(String courseId, double midScore, double finalScore, String transcriptId) {
-        this.courseId = courseId;
-        this.midScore = midScore;
-        this.finalScore = finalScore;
-        this.transcriptId = transcriptId;
-    }
 
     public Grade(String id, String courseId, String transcriptId, double midScore, double finalScore) {
         this.id = id;
         this.courseId = courseId;
+        this.transcriptId = transcriptId;
         this.midScore = midScore;
         this.finalScore = finalScore;
-        this.transcriptId = transcriptId;
     }
 
+    // Constructor với tham số đầy đủ
+    public Grade(String id, String studentId, String studentName, String transcriptId, String courseId,
+                 double midScore, double finalScore, double averageScore, double gpa, String status) {
+        this.id = id;
+        this.studentId = studentId;
+        this.studentName = studentName;
+        this.transcriptId = transcriptId;
+        this.courseId = courseId;
+        this.midScore = midScore;
+        this.finalScore = finalScore;
+        this.averageScore = averageScore;
+        this.gpa = gpa;
+        this.status = status;
+    }
+
+    // Getter và setter
     public String getId() {
         return id;
     }
@@ -70,12 +65,28 @@ public class Grade {
         this.studentName = studentName;
     }
 
+    public String getTranscriptId() {
+        return transcriptId;
+    }
+
+    public void setTranscriptId(String transcriptId) {
+        this.transcriptId = transcriptId;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
+    }
+
     public double getMidScore() {
         return midScore;
     }
 
-    public void setMidScore(double midtermScore) {
-        this.midScore = midtermScore;
+    public void setMidScore(double midScore) {
+        this.midScore = midScore;
     }
 
     public double getFinalScore() {
@@ -84,6 +95,14 @@ public class Grade {
 
     public void setFinalScore(double finalScore) {
         this.finalScore = finalScore;
+    }
+
+    public double getAverageScore() {
+        return averageScore;
+    }
+
+    public void setAverageScore(double averageScore) {
+        this.averageScore = averageScore;
     }
 
     public double getGpa() {
@@ -102,19 +121,19 @@ public class Grade {
         this.status = status;
     }
 
-    public String getTranscriptId() {
-        return transcriptId;
+    public Course getCourse() {
+        return course;
     }
 
-    public void setTranscriptId(String transcriptId) {
-        this.transcriptId = transcriptId;
+    public void setCourse(Course course) {
+        this.course = course;
     }
 
-    public String getCourseId() {
-        return courseId;
+    public String getCourseName() {
+        return courseName;
     }
 
-    public void setCourseId(String courseId) {
-        this.courseId = courseId;
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
     }
 }
