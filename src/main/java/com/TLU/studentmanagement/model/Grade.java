@@ -26,21 +26,6 @@ public class Grade {
         this.finalScore = finalScore;
     }
 
-    // Constructor với tham số đầy đủ
-    public Grade(String id, String studentId, String studentName, String transcriptId, String courseId,
-                 double midScore, double finalScore, double averageScore, double gpa, String status) {
-        this.id = id;
-        this.studentId = studentId;
-        this.studentName = studentName;
-        this.transcriptId = transcriptId;
-        this.courseId = courseId;
-        this.midScore = midScore;
-        this.finalScore = finalScore;
-        this.averageScore = averageScore;
-        this.gpa = gpa;
-        this.status = status;
-    }
-
     // Getter và setter
     public String getId() {
         return id;
@@ -137,4 +122,23 @@ public class Grade {
     public void setCourseName(String courseName) {
         this.courseName = courseName;
     }
+
+    @Override
+    public String toString() {
+        return "Grade{" +
+                "id='" + id + '\'' +
+                ", studentId='" + studentId + '\'' +
+                ", studentName='" + studentName + '\'' +
+                ", transcriptId='" + transcriptId + '\'' +
+                ", courseId='" + courseId + '\'' +
+                ", midScore=" + midScore +
+                ", finalScore=" + finalScore +
+                ", averageScore=" + averageScore +
+                ", gpa=" + gpa +
+                ", status='" + status + '\'' +
+                ", courseName='" + courseName + '\'' +
+                ", courseCode='" + courseCode + '\'' +
+                '}';
+    }
+
 }

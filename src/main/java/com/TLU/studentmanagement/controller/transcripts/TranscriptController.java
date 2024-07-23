@@ -99,9 +99,11 @@ public class TranscriptController {
             for (int i = 0; i < gradesArray.length(); i++) {
                 JSONObject gradeJson = gradesArray.getJSONObject(i);
                 Grade grade = new Grade();
+                grade.setId(gradeJson.getString("_id"));
                 grade.setCourseId(gradeJson.getString("course"));
                 grade.setMidScore(gradeJson.getDouble("midScore"));
                 grade.setFinalScore(gradeJson.getDouble("finalScore"));
+                grade.setTranscriptId(gradeJson.getString("transcript"));
                 grade.setAverageScore(gradeJson.getDouble("averageScore"));
                 grade.setStatus(gradeJson.getString("status"));
                 grades.add(grade);

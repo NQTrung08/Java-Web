@@ -13,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.HttpURLConnection;
 
 public class TranscriptDetail extends JPanel {
     private TranscriptController transcriptController;
@@ -50,10 +51,16 @@ public class TranscriptDetail extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        String[] columnNames = {"Số thứ tự", "Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
+        String[] columnNames = {"ID", "Số thứ tự", "Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
         tableModel = new DefaultTableModel(columnNames, 0);
         gradeTable = new JTable(tableModel);
         gradeTable.setRowHeight(40);
+
+        // Hide the ID column
+        gradeTable.getColumnModel().getColumn(0).setMinWidth(0);
+        gradeTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        gradeTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
 
         // Thêm dữ liệu vào bảng
         loadTableData();
@@ -70,6 +77,7 @@ public class TranscriptDetail extends JPanel {
 
         for (int i = 0; i < transcript.getGrades().size(); i++) {
             Grade grade = transcript.getGrades().get(i);
+            System.out.println(grade.toString());
             Course course = null;
 
             try {
@@ -86,6 +94,7 @@ public class TranscriptDetail extends JPanel {
 
             // Tạo dữ liệu hàng và thêm vào tableModel
             Object[] rowData = {
+                    grade.getId(),
                     i + 1,
                     course.getCode() != null ? course.getCode() : "Không có thông tin",
                     course.getName() != null ? course.getName() : "Không có thông tin",
@@ -285,7 +294,7 @@ public class TranscriptDetail extends JPanel {
                     if (row >= 0) {
                         deleteGrade(row);
                         // Stop editing to ensure control is released properly
-                        stopCellEditing();
+//                        stopCellEditing();
                         loadTableData();
                     }
                 }
@@ -294,6 +303,9 @@ public class TranscriptDetail extends JPanel {
 
         private void showEditDialog(int row) {
             Grade grade = transcript.getGrades().get(row);
+
+            String transcriptId = (String) tableModel.getValueAt(row, 0 );
+            System.out.println(transcriptId);
 
             JTextField midScoreField = new JTextField(String.valueOf(grade.getMidScore()), 10);
             JTextField finalScoreField = new JTextField(String.valueOf(grade.getFinalScore()), 10);
@@ -310,21 +322,43 @@ public class TranscriptDetail extends JPanel {
                     double midScore = Double.parseDouble(midScoreField.getText());
                     double finalScore = Double.parseDouble(finalScoreField.getText());
 
-                    // Update the grade object
+                    // Cập nhật đối tượng Grade
                     grade.setMidScore(midScore);
                     grade.setFinalScore(finalScore);
-                    grade.setAverageScore((midScore * 0.3) + (finalScore * 0.7));
+                     grade.setAverageScore((midScore * 0.3) + (finalScore * 0.7)); // Tùy thuộc vào logic tính điểm trung bình
 
-                    // Update the data on the server
-                    gradeController.updateGrade(grade.getId(), grade);
+                    System.out.println(grade.toString());
 
-                    // Reload the table data
-                    loadTableData();
+                    // Cập nhật dữ liệu trên máy chủ
+                    int responseCode = gradeController.updateGrade(transcriptId, grade);
+
+                    System.out.println("Response code: " + responseCode);
+
+                    switch (responseCode) {
+                        case HttpURLConnection.HTTP_OK:
+                            // Tải lại dữ liệu bảng
+                            loadTableData();
+                            break;
+                        case HttpURLConnection.HTTP_BAD_REQUEST:
+                            JOptionPane.showMessageDialog(null, "Yêu cầu không hợp lệ. Vui lòng kiểm tra dữ liệu và thử lại.");
+                            break;
+                        case HttpURLConnection.HTTP_INTERNAL_ERROR:
+                            JOptionPane.showMessageDialog(null, "Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau.");
+                            break;
+                        default:
+                            JOptionPane.showMessageDialog(null, "Cập nhật điểm thất bại. Mã lỗi: " + responseCode);
+                            break;
+                    }
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(null, "Điểm không hợp lệ. Vui lòng nhập lại.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Đã xảy ra lỗi khi cập nhật điểm. Vui lòng thử lại.");
+                    ex.printStackTrace();
                 }
             }
         }
+
+
 
         private void deleteGrade(int row) {
             int confirm = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn muốn xóa môn học này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);

@@ -7,6 +7,8 @@ import main.java.com.TLU.studentmanagement.util.HttpUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.HttpURLConnection;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,16 +76,33 @@ public class GradeController {
         }
     }
 
-    public void updateGrade(String gradeId, Grade grade) {
+    public int updateGrade(String gradeId, Grade grade) {
         try {
+            // Tạo đối tượng JSON để gửi đi
             JSONObject jsonGrade = new JSONObject();
             jsonGrade.put("midScore", grade.getMidScore());
             jsonGrade.put("finalScore", grade.getFinalScore());
-            HttpUtil.sendPut(BASE_URL + "/update/" + gradeId, jsonGrade.toString());
+
+            // Gửi yêu cầu PUT và nhận phản hồi
+            String response = HttpUtil.sendPut(BASE_URL + "/update/" + gradeId, jsonGrade.toString());
+
+            // Xử lý nội dung phản hồi JSON
+            JSONObject jsonResponse = new JSONObject(response);
+            String message = jsonResponse.optString("message");
+
+            if ("Update successfully".equals(message)) {
+                return HttpURLConnection.HTTP_OK; // Hoặc mã trạng thái thành công khác
+            } else {
+                // Xử lý các mã trạng thái khác nếu cần
+                return HttpURLConnection.HTTP_INTERNAL_ERROR; // Ví dụ mã trạng thái lỗi
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            return HttpURLConnection.HTTP_BAD_REQUEST; // Trả về mã trạng thái lỗi
         }
     }
+
+
 
     public void deleteGrade(String gradeId) {
         try {
