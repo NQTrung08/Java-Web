@@ -1,6 +1,8 @@
 package main.java.com.TLU.studentmanagement.view.pages.Grades;
 
+import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
+import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.view.pages.Transcripts.TranscriptDetail;
@@ -9,30 +11,34 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class AddGradeForm extends JDialog {
     private GradeController gradeController;
-    private JComboBox<String> courseComboBox;
+    private CourseController courseController; // Add course controller
+    private JComboBox<Course> courseComboBox;
     private JTextField midScoreField;
     private JTextField finalScoreField;
     private JButton submitButton;
     private JButton cancelButton;
     private Transcript transcript;
 
-    public AddGradeForm(Frame owner, GradeController gradeController, Transcript transcript) {
+    public AddGradeForm(Frame owner, GradeController gradeController, CourseController courseController, Transcript transcript) {
         super(owner, "Thêm điểm", true);
         this.gradeController = gradeController;
+        this.courseController = courseController;
         this.transcript = transcript;
         initUI();
+        loadCourses();
     }
 
     private void initUI() {
         setLayout(new BorderLayout());
-        setSize(300, 200);
+        setSize(500, 240);
         setLocationRelativeTo(null);
 
         JPanel formPanel = new JPanel(new GridLayout(4, 2));
-        courseComboBox = new JComboBox<>(getCourseNames());
+        courseComboBox = new JComboBox<>();
         midScoreField = new JTextField();
         finalScoreField = new JTextField();
 
@@ -68,27 +74,37 @@ public class AddGradeForm extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    private String[] getCourseNames() {
-        // Thay thế bằng cách lấy tên môn học từ controller hoặc dữ liệu thực tế
-        return new String[]{"Môn 1", "Môn 2", "Môn 3"};
+    private void loadCourses() {
+        try {
+            // Use CourseController to fetch courses
+            List<Course> courses = courseController.getAllCourses();
+//            System.out.println("courses: " + courses);
+            for (Course course : courses) {
+                courseComboBox.addItem(course);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Không thể tải danh sách môn học.");
+            e.printStackTrace();
+        }
     }
 
     private void addGrade() {
         try {
-            String selectedCourse = (String) courseComboBox.getSelectedItem();
+            Course selectedCourse = (Course) courseComboBox.getSelectedItem();
             double midScore = Double.parseDouble(midScoreField.getText());
             double finalScore = Double.parseDouble(finalScoreField.getText());
 
             Grade newGrade = new Grade();
-            newGrade.setCourse(selectedCourse);
+            newGrade.setCourseId(selectedCourse.getId());
+            newGrade.setTranscriptId(transcript.getId());
             newGrade.setMidScore(midScore);
             newGrade.setFinalScore(finalScore);
-            newGrade.setAverageScore(midScore*0.3 + finalScore*0.7);
+            newGrade.setAverageScore(midScore * 0.3 + finalScore * 0.7);
 
-            // Gọi controller để lưu điểm mới vào server
+            // Use GradeController to create a new grade
             gradeController.createGrade(newGrade);
 
-            // Cập nhật bảng điểm trong TranscriptDetail
+            // Update the table in TranscriptDetail
             TranscriptDetail.loadTableData();
 
             dispose();
