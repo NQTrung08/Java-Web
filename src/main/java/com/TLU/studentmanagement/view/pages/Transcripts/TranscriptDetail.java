@@ -2,6 +2,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Transcripts;
 
 import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
 import main.java.com.TLU.studentmanagement.controller.transcripts.TranscriptController;
+import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Grade;
 import main.java.com.TLU.studentmanagement.model.User;
@@ -16,6 +17,7 @@ import java.awt.event.ActionListener;
 public class TranscriptDetail extends JPanel {
     private TranscriptController transcriptController;
     private GradeController gradeController;
+    private CourseController courseController; // Add this
     private static Transcript transcript;
     private JTable gradeTable;
     private static DefaultTableModel tableModel;
@@ -24,6 +26,7 @@ public class TranscriptDetail extends JPanel {
         this.transcript = transcript;
         this.transcriptController = new TranscriptController();
         this.gradeController = new GradeController();
+        this.courseController = new CourseController(); // Initialize this
         initUI();
     }
 
@@ -32,7 +35,8 @@ public class TranscriptDetail extends JPanel {
 
         JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Bảng điểm sinh viên", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Serif", Font.BOLD, 20));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
         JButton addButton = new JButton("Thêm điểm");
@@ -49,6 +53,7 @@ public class TranscriptDetail extends JPanel {
         String[] columnNames = {"Số thứ tự", "Tên môn", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
         tableModel = new DefaultTableModel(columnNames, 0);
         gradeTable = new JTable(tableModel);
+        gradeTable.setRowHeight(40);
 
         // Thêm dữ liệu vào bảng
         loadTableData();
@@ -62,7 +67,7 @@ public class TranscriptDetail extends JPanel {
 
     private void showAddGradeForm() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        AddGradeForm addGradeForm = new AddGradeForm(parentFrame, gradeController, transcript);
+        AddGradeForm addGradeForm = new AddGradeForm(parentFrame, gradeController, courseController, transcript);
         addGradeForm.setVisible(true);
     }
 
@@ -103,20 +108,31 @@ public class TranscriptDetail extends JPanel {
     }
 
     class ButtonEditor extends DefaultCellEditor {
+        private JPanel panel;
         private JButton editButton;
         private JButton deleteButton;
 
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
+
+            // Initialize the panel and buttons
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             editButton = new JButton("Sửa");
             deleteButton = new JButton("Xóa");
 
+            // Add buttons to the panel
+            panel.add(editButton);
+            panel.add(deleteButton);
+
+            // Add action listeners
             editButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     int row = gradeTable.getSelectedRow();
                     if (row >= 0) {
                         showEditDialog(row);
+                        // Stop editing to ensure control is released properly
+                        stopCellEditing();
                     }
                 }
             });
@@ -127,6 +143,8 @@ public class TranscriptDetail extends JPanel {
                     int row = gradeTable.getSelectedRow();
                     if (row >= 0) {
                         deleteGrade(row);
+                        // Stop editing to ensure control is released properly
+                        stopCellEditing();
                     }
                 }
             });
@@ -150,15 +168,15 @@ public class TranscriptDetail extends JPanel {
                     double midScore = Double.parseDouble(midScoreField.getText());
                     double finalScore = Double.parseDouble(finalScoreField.getText());
 
-                    // Cập nhật điểm mới vào đối tượng Grade
+                    // Update the grade object
                     grade.setMidScore(midScore);
                     grade.setFinalScore(finalScore);
                     grade.setAverageScore((midScore * 0.3) + (finalScore * 0.7));
 
-                    // Cập nhật dữ liệu trên server
+                    // Update the data on the server
                     gradeController.updateGrade(grade.getId(), grade);
 
-                    // Tải lại bảng điểm
+                    // Reload the table data
                     loadTableData();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(null, "Điểm không hợp lệ. Vui lòng nhập lại.");
@@ -171,22 +189,19 @@ public class TranscriptDetail extends JPanel {
             if (confirm == JOptionPane.YES_OPTION) {
                 Grade grade = transcript.getGrades().get(row);
 
-                // Xóa điểm khỏi danh sách
+                // Remove the grade from the list
                 transcript.getGrades().remove(row);
 
-                // Xóa dữ liệu trên server
+                // Delete the data on the server
                 gradeController.deleteGrade(grade.getId());
 
-                // Tải lại bảng điểm
+                // Reload the table data
                 loadTableData();
             }
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            panel.add(editButton);
-            panel.add(deleteButton);
             return panel;
         }
 
