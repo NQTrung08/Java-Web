@@ -39,7 +39,11 @@ public class EditTranscriptForm extends JDialog {
     }
 
     private void initUI() {
-        setLayout(new GridLayout(3, 2, 10, 10));
+        // Use GridBagLayout for more flexible layout
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
 
         // Initialize components
         studentComboBox = new JComboBox<>();
@@ -57,12 +61,28 @@ public class EditTranscriptForm extends JDialog {
         }
 
         // Add components to the form
-        add(new JLabel("Sinh viên:"));
-        add(studentComboBox);
-        add(new JLabel("Học kỳ:"));
-        add(semesterComboBox);
-        add(saveButton);
-        add(cancelButton);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        add(new JLabel("Mã sinh viên:"), gbc);
+
+        gbc.gridx = 1;
+        add(studentComboBox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        add(new JLabel("Học kỳ:"), gbc);
+
+        gbc.gridx = 1;
+        add(semesterComboBox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(saveButton, gbc);
+
+        gbc.gridy = 3;
+        add(cancelButton, gbc);
 
         // Set button actions
         saveButton.addActionListener(new ActionListener() {
@@ -86,11 +106,8 @@ public class EditTranscriptForm extends JDialog {
 
     private void populateFields() {
         if (transcript != null) {
-            String studentId = transcript.getStudentId();
-            String semesterId = transcript.getSemesterId();
-
-            String studentDisplay = getStudentDisplayById(studentId);
-            String semesterDisplay = getSemesterDisplayById(semesterId);
+            String studentDisplay = getStudentCodeById(transcript.getStudentId());
+            String semesterDisplay = getSemesterDisplayById(transcript.getSemesterId());
 
             studentComboBox.setSelectedItem(studentDisplay);
             semesterComboBox.setSelectedItem(semesterDisplay);
@@ -106,8 +123,10 @@ public class EditTranscriptForm extends JDialog {
             String semesterId = getSemesterIdByDisplay(semesterDisplay);
 
             if (studentId != null && semesterId != null) {
+                // Create a new Transcript object with all required fields
                 Transcript updatedTranscript = new Transcript(studentId, semesterId);
-//                updatedTranscript.setId(transcript.getId()); // Preserve the existing transcript ID
+                updatedTranscript.setId(transcript.getId()); // Preserve the existing transcript ID
+
                 int result = transcriptController.updateTranscript(transcript.getId(), updatedTranscript);
 
                 if (result == 1) {
@@ -125,6 +144,24 @@ public class EditTranscriptForm extends JDialog {
         } catch (Exception e) {
             Notifications.getInstance().show(Notifications.Type.ERROR, "Không thể cập nhật bảng điểm. Vui lòng thử lại sau.");
         }
+    }
+
+    private String getStudentNameById(String studentId) {
+        for (User student : students) {
+            if (student.getId().equals(studentId)) {
+                return student.getFullName(); // Return the full name of the student
+            }
+        }
+        return null;
+    }
+
+    private String getStudentCodeById(String studentId) {
+        for (User student : students) {
+            if (student.getId().equals(studentId)) {
+                return student.getMsv(); // Return the student code
+            }
+        }
+        return null;
     }
 
     private String getStudentDisplayById(String studentId) {

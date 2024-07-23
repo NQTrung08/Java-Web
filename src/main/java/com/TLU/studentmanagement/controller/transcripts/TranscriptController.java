@@ -85,6 +85,7 @@ public class TranscriptController {
             JSONObject studentJson = jsonTranscript.getJSONObject("student");
             transcript.setStudentId(studentJson.getString("_id"));
             transcript.setStudentName(studentJson.getString("fullname"));
+            transcript.setStudentCode(studentJson.getString("msv"));
 
             // Parse semester details
             JSONObject semesterJson = jsonTranscript.getJSONObject("semester");
@@ -321,10 +322,15 @@ public class TranscriptController {
                 // Lấy thông tin sinh viên
                 JSONObject studentObj = jsonTranscript.getJSONObject("student");
                 transcript.setStudentId(studentObj.getString("_id"));
+                transcript.setStudentName(studentObj.optString("fullname", "Chưa có tên"));
+                transcript.setStudentCode(studentObj.optString("msv", "Chưa có tên"));
 
                 // Lấy thông tin học kỳ
                 JSONObject semesterObj = jsonTranscript.getJSONObject("semester");
                 transcript.setSemesterId(semesterObj.getString("_id"));
+                transcript.setSemesterName(semesterObj.optString("semester", "Chưa có tên học kỳ") +
+                        " - " + semesterObj.optString("group", "Chưa có nhóm") +
+                        " - Năm học: " + semesterObj.optString("year", "Chưa có năm học"));
 
                 transcripts.add(transcript);
             }
@@ -333,5 +339,6 @@ public class TranscriptController {
         }
         return transcripts;
     }
+
 
 }

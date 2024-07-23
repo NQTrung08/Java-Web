@@ -31,6 +31,8 @@ public class TranscriptPanel extends JPanel {
     private List<User> students;
     private List<Semester> semesters;
 
+    private JPanel detailPanel;
+
     public TranscriptPanel() {
         transcriptController = new TranscriptController();
         initUI();
@@ -45,6 +47,11 @@ public class TranscriptPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titleLabel, BorderLayout.NORTH);
+
+        detailPanel = new JPanel(new BorderLayout());
+        detailPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        add(detailPanel, BorderLayout.SOUTH);
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -177,21 +184,29 @@ public class TranscriptPanel extends JPanel {
                     ", Semester ID: " + transcript.getSemesterId());
         }
 
+        // Xóa tất cả các hàng trong bảng hiện tại
         tableModel.setRowCount(0);
+
+        // Thêm dữ liệu vào bảng
+        int stt = 1; // Khởi tạo số thứ tự
         for (Transcript transcript : transcripts) {
             String studentName = transcript.getStudentName();
             String semesterName = getSemesterNameById(transcript.getSemesterId());
 
             // In ra giá trị để kiểm tra
-            System.out.println("Student Name: " + studentName + ", Semester Name: " + semesterName);
+            System.out.println("Student Name: " + transcript.getStudentCode() + studentName + ", Semester Name: " + semesterName);
 
             tableModel.addRow(new Object[]{
-                    studentName != null ? studentName : "Không tìm thấy",
-                    semesterName != null ? semesterName : "Không tìm thấy",
-                    "Xem"
+                    stt++, // Số thứ tự
+                    transcript.getId(), // ID bảng điểm
+                    transcript.getStudentCode(), // Mã sinh viên
+                    studentName != null ? studentName : "Không tìm thấy", // Tên sinh viên
+                    semesterName != null ? semesterName : "Không tìm thấy", // Tên học kỳ
+                    "Xem" // Cột hành động
             });
         }
     }
+
 
 
     private void openAddTranscriptForm() {
@@ -205,7 +220,6 @@ public class TranscriptPanel extends JPanel {
 
     private void viewTranscript(int row) {
         String transcriptId = (String) tableModel.getValueAt(row, 1); // Lấy transcriptId từ cột thứ 3
-        System.out.println(transcriptId);
         Transcript transcript = transcriptController.getTranscriptById(transcriptId);
 
         if (transcript == null) {
@@ -213,30 +227,29 @@ public class TranscriptPanel extends JPanel {
             return;
         }
 
-        JFrame frame = new JFrame("Chi tiết bảng điểm");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(800, 600);
-        TranscriptDetail transcriptDetailPanel = new TranscriptDetail(transcript);
-        System.out.println(transcript.toString());
-        frame.add(transcriptDetailPanel);
-        frame.setVisible(true);
+        // Xóa nội dung hiện tại của detailPanel
+        detailPanel.removeAll();
+        detailPanel.add(new TranscriptDetail(transcript), BorderLayout.CENTER);
+        detailPanel.revalidate();
+        detailPanel.repaint();
     }
 
 
     private void editTranscript(int row) {
-        String studentDisplay = (String) tableModel.getValueAt(row, 0);
-        String semesterDisplay = (String) tableModel.getValueAt(row, 1);
+        String transcriptId = (String) tableModel.getValueAt(row, 1); // Lấy transcriptId từ cột thứ 2
+        if (transcriptId == null || transcriptId.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Không thể xác định ID bảng điểm.");
+            return;
+        }
 
-        String studentId = getStudentIdByDisplay(studentDisplay);
-        String semesterId = getSemesterIdByDisplay(semesterDisplay);
-
-        Transcript transcript = transcriptController.getTranscriptBySemesterStudent(studentId, semesterId);
-
+        // Lấy bảng điểm cần chỉnh sửa
+        Transcript transcript = transcriptController.getTranscriptById(transcriptId);
         if (transcript == null) {
             JOptionPane.showMessageDialog(null, "Không tìm thấy bảng điểm để chỉnh sửa.");
             return;
         }
 
+        // Mở form chỉnh sửa bảng điểm
         new EditTranscriptForm(
                 (Frame) SwingUtilities.getWindowAncestor(this),
                 students,
@@ -245,6 +258,7 @@ public class TranscriptPanel extends JPanel {
                 this
         ).setVisible(true);
     }
+
 
     private void deleteTranscript(int row) {
         loadStudentAndSemesterData(); // Đảm bảo dữ liệu đã được nạp

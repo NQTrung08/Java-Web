@@ -36,7 +36,7 @@ public class TranscriptDetail extends JPanel {
         setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("Bảng điểm sinh viên", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Bảng điểm sinh viên "+ transcript.getStudentName() + " - " + transcript.getStudentCode(), SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         topPanel.add(titleLabel, BorderLayout.CENTER);
