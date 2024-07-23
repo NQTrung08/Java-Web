@@ -108,7 +108,6 @@ public class TranscriptDetail extends JPanel {
         // Thêm các mã môn vào JComboBox
         try {
             for (Course course : CourseController.getAllCourses()) {
-//                System.out.println(course.getCode());
                 courseComboBox.addItem(course);
             }
         } catch (Exception e) {
@@ -184,11 +183,15 @@ public class TranscriptDetail extends JPanel {
                 }
 
                 Grade newGrade = new Grade();
+                newGrade.setCourseId(selectedCourse.getId()); // Cập nhật ID của môn học
                 newGrade.setCourseName(selectedCourse.getName());
                 newGrade.setCourseCode(selectedCourse.getCode());
                 newGrade.setMidScore(midScore);
                 newGrade.setFinalScore(finalScore);
                 newGrade.setAverageScore((midScore * 0.3) + (finalScore * 0.7));
+
+                // Thêm transcriptId từ TranscriptDetail
+                newGrade.setTranscriptId(transcript.getId());
 
                 // Thêm điểm vào danh sách điểm của bảng điểm
                 transcript.getGrades().add(newGrade);
@@ -219,6 +222,7 @@ public class TranscriptDetail extends JPanel {
         // Hiển thị dialog
         addGradeDialog.setVisible(true);
     }
+
 
 
 
