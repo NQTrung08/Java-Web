@@ -1,6 +1,7 @@
 package main.java.com.TLU.studentmanagement.view.pages.Semesters;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
 import main.java.com.TLU.studentmanagement.controller.semesters.SemesterController;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
@@ -19,6 +20,7 @@ import java.util.List;
 public class SemesterPanel extends JPanel {
 
     private JButton addButton;
+    private SemesterController semesterController;
     private JTable semesterTable;
     private SemesterTableModel semesterTableModel;
 
@@ -148,7 +150,11 @@ public class SemesterPanel extends JPanel {
             String year = yearField.getText();
 
             try {
-                SemesterController.createSemester(semester, group, year);
+                String response = semesterController.createSemester(semester, group, year);
+                if (response.equals("Semester already exists")) {
+                    // Xử lý lỗi từ server
+                    Notifications.getInstance().show(Notifications.Type.ERROR, "Kỳ học đã tồn tại");
+                }
                 getAllSemesters();
             } catch (Exception ex) {
                 ex.printStackTrace();

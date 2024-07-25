@@ -9,9 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SemesterController {
+    private static final String BASE_URL = "http://localhost:8080/api/semester";
 
     public static List<Semester> getAllSemesters() throws Exception {
-        String apiUrl = "http://localhost:8080/api/semester/getAll";
+        String apiUrl = BASE_URL + "/getAll";
         String response = HttpUtil.sendGet(apiUrl);
         JSONObject jsonResponse = new JSONObject(response);
         JSONArray semestersArray = jsonResponse.getJSONArray("data");
@@ -29,14 +30,36 @@ public class SemesterController {
         return semesters;
     }
 
-    public static void createSemester(String semester, String group, String year) throws Exception {
-        JSONObject jsonInput = new JSONObject();
-        jsonInput.put("semester", semester);
-        jsonInput.put("group", group);
-        jsonInput.put("year", year);
+    public String createSemester(String semester, String group, String year) {
+        try {
 
-        String apiUrl = "http://localhost:8080/api/semester/create";
-        HttpUtil.sendPost(apiUrl, jsonInput.toString());
+            JSONObject jsonInput = new JSONObject();
+            jsonInput.put("semester", semester);
+            jsonInput.put("group", group);
+            jsonInput.put("year", year);
+
+            String apiUrl = BASE_URL + "/create";
+            String response = HttpUtil.sendPost(apiUrl, jsonInput.toString());
+            System.out.println(response);
+            String jsonResponseString = response.replaceFirst("Bad Request: ", "");
+            // Chuyển đổi phản hồi thành JSONObject
+            JSONObject jsonResponse = new JSONObject(jsonResponseString);
+
+            // Kiểm tra trạng thái phản hồi
+            if (jsonResponse.has("status") && jsonResponse.getString("status").equals("error")) {
+                // Xử lý lỗi từ server
+                String errorMessage = jsonResponse.getString("message");
+                return errorMessage;
+            } else {
+                // Xử lý thành công
+                return "Create success";
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+
     }
 
     public static void updateSemester(String id, String semester, String group, String year) throws Exception {
@@ -45,12 +68,12 @@ public class SemesterController {
         jsonInput.put("group", group);
         jsonInput.put("year", year);
 
-        String apiUrl = "http://localhost:8080/api/semester/update/" + id;
+        String apiUrl = BASE_URL + "/update/" + id;
         HttpUtil.sendPut(apiUrl, jsonInput.toString());
     }
 
     public static void deleteSemester(String id) throws Exception {
-        String apiUrl = "http://localhost:8080/api/semester/delete/" + id;
+        String apiUrl = BASE_URL + "/delete/" + id;
         HttpUtil.sendDelete(apiUrl);
     }
 }
