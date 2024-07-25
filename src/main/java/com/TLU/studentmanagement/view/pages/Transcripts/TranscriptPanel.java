@@ -117,6 +117,14 @@ public class TranscriptPanel extends JPanel {
         transcriptTable.setIntercellSpacing(new Dimension(0, 1));
         transcriptTable.setGridColor(new Color(220, 220, 220));
 
+        // Set center alignment for all columns
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < transcriptTable.getColumnCount(); i++) {
+            transcriptTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
         transcriptTable.getColumn("Thao tác").setCellRenderer(new ButtonRenderer());
         transcriptTable.getColumn("Thao tác").setCellEditor(new ButtonEditor(new JCheckBox()));
 

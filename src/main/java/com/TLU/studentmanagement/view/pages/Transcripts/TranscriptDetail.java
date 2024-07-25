@@ -13,6 +13,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 
 public class TranscriptDetail extends JPanel {
@@ -51,7 +53,7 @@ public class TranscriptDetail extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        String[] columnNames = {"ID", "Số thứ tự", "Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Hành động"};
+        String[] columnNames = {"ID", "Số thứ tự", "Mã môn", "Tên môn", "Số TC", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết", "Trạng thái", "Hành động"};
         tableModel = new DefaultTableModel(columnNames, 0);
         gradeTable = new JTable(tableModel);
         gradeTable.setRowHeight(40);
@@ -102,6 +104,7 @@ public class TranscriptDetail extends JPanel {
                     grade.getMidScore(),
                     grade.getFinalScore(),
                     grade.getAverageScore(),
+                    grade.getStatus(),
                     "Sửa, Xóa"
             };
             tableModel.addRow(rowData);
@@ -145,7 +148,7 @@ public class TranscriptDetail extends JPanel {
 
         // Tạo JDialog để hiển thị form thêm điểm
         JDialog addGradeDialog = new JDialog((Frame) null, "Thêm điểm", true);
-        addGradeDialog.setSize(400, 300);
+        addGradeDialog.setSize(680, 300);
         addGradeDialog.setLocationRelativeTo(this);
 
         // Thêm panel vào dialog
@@ -197,7 +200,15 @@ public class TranscriptDetail extends JPanel {
                 newGrade.setCourseCode(selectedCourse.getCode());
                 newGrade.setMidScore(midScore);
                 newGrade.setFinalScore(finalScore);
-                newGrade.setAverageScore((midScore * 0.3) + (finalScore * 0.7));
+
+
+                // Tính toán averageScore và làm tròn đến 2 chữ số thập phân
+                double rawAverageScore = (midScore * 0.3) + (finalScore * 0.7);
+                BigDecimal bd = new BigDecimal(rawAverageScore).setScale(2, RoundingMode.HALF_UP);
+                double roundedAverageScore = bd.doubleValue();
+
+                newGrade.setAverageScore(roundedAverageScore);
+                newGrade.setStatus(roundedAverageScore >= 4.0 ? "Pass" : "Fail");
 
                 // Thêm transcriptId từ TranscriptDetail
                 newGrade.setTranscriptId(transcript.getId());
