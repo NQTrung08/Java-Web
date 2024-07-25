@@ -6,7 +6,9 @@ import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.model.Course;
 import main.java.com.TLU.studentmanagement.model.Transcript;
 import main.java.com.TLU.studentmanagement.model.Grade;
-import main.java.com.TLU.studentmanagement.view.pages.Grades.AddGradeForm;
+import org.json.JSONException;
+import org.json.JSONObject;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -195,12 +197,11 @@ public class TranscriptDetail extends JPanel {
                 }
 
                 Grade newGrade = new Grade();
-                newGrade.setCourseId(selectedCourse.getId()); // Cập nhật ID của môn học
+                newGrade.setCourseId(selectedCourse.getId());
                 newGrade.setCourseName(selectedCourse.getName());
                 newGrade.setCourseCode(selectedCourse.getCode());
                 newGrade.setMidScore(midScore);
                 newGrade.setFinalScore(finalScore);
-
 
                 // Tính toán averageScore và làm tròn đến 2 chữ số thập phân
                 double rawAverageScore = (midScore * 0.3) + (finalScore * 0.7);
@@ -213,23 +214,43 @@ public class TranscriptDetail extends JPanel {
                 // Thêm transcriptId từ TranscriptDetail
                 newGrade.setTranscriptId(transcript.getId());
 
-                // Thêm điểm vào danh sách điểm của bảng điểm
-                transcript.getGrades().add(newGrade);
+                // Tạo biến để lưu trạng thái tạo điểm
+                final boolean[] gradeCreated = {false};
 
                 // Cập nhật điểm trên server
                 try {
-                    gradeController.createGrade(newGrade); // Thêm điểm qua controller
+                    // Gọi createGrade và xử lý phản hồi từ server
+                    String response = gradeController.createGrade(newGrade); // Cập nhật phương thức createGrade để trả về phản hồi
+                    System.out.println("Server response: " + response);
+
+
+                    if (response.equals("Grade of course already exists for semester")) {
+                        // Xử lý lỗi từ server
+                        Notifications.getInstance().show(Notifications.Type.ERROR, "Điểm đã tồn tại trong kỳ");
+                    } else {
+                        // Điểm đã được tạo thành công
+                        gradeCreated[0] = true;
+                    }
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Đã xảy ra lỗi khi tạo điểm: " + ex.getMessage());
                 }
 
-                // Tải lại dữ liệu bảng điểm
-                loadTableData();
+                // Kiểm tra xem điểm có được tạo thành công không
+                if (gradeCreated[0]) {
+                    // Thêm điểm vào danh sách điểm của bảng điểm
+                    transcript.getGrades().add(newGrade);
 
-                // Đóng dialog
-                addGradeDialog.dispose();
+                    // Tải lại dữ liệu bảng điểm
+                    loadTableData();
+
+                    // Đóng dialog
+                    addGradeDialog.dispose();
+                }
             }
         });
+
+
 
         // Xử lý sự kiện khi nhấn nút Hủy
         cancelButton.addActionListener(new ActionListener() {

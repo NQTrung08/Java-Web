@@ -38,22 +38,45 @@ public class HttpUtil {
         }
 
         int responseCode = conn.getResponseCode();
+        BufferedReader br;
         if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            lastResponse = response.toString(); // Cập nhật phản hồi cuối cùng
-            return lastResponse;
-        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            throw new RuntimeException("Unauthorized");
+            br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         } else {
-            throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage());
+            String errorResponse = readErrorStream(conn);
+            switch (responseCode) {
+                case HttpURLConnection.HTTP_UNAUTHORIZED:
+                    throw new RuntimeException("Unauthorized: " + errorResponse);
+                case HttpURLConnection.HTTP_BAD_REQUEST:
+                    throw new RuntimeException("Bad Request: " + errorResponse);
+                case HttpURLConnection.HTTP_FORBIDDEN:
+                    throw new RuntimeException("Forbidden: " + errorResponse);
+                case HttpURLConnection.HTTP_NOT_FOUND:
+                    throw new RuntimeException("Not Found: " + errorResponse);
+                case HttpURLConnection.HTTP_INTERNAL_ERROR:
+                    throw new RuntimeException("Internal Server Error: " + errorResponse);
+                default:
+                    throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage() + " - " + errorResponse);
+            }
         }
+
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+        while ((inputLine = br.readLine()) != null) {
+            response.append(inputLine);
+        }
+        br.close();
+        lastResponse = response.toString(); // Cập nhật phản hồi cuối cùng
+        return lastResponse;
+    }
+
+    private static String readErrorStream(HttpURLConnection conn) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        StringBuilder errorResponse = new StringBuilder();
+        String errorLine;
+        while ((errorLine = br.readLine()) != null) {
+            errorResponse.append(errorLine);
+        }
+        return errorResponse.toString();
     }
 
     public static String getLastResponse() {
@@ -87,16 +110,31 @@ public class HttpUtil {
     }
 
     public static String sendPost(String apiUrl, String requestData) throws Exception {
-        return sendRequestWithRefresh(apiUrl, "POST", requestData);
+        try {
+            return sendRequestWithRefresh(apiUrl, "POST", requestData);
+        } catch (RuntimeException e) {
+            // Xử lý lỗi cụ thể hoặc ghi log nếu cần
+            return e.getMessage();
+        }
     }
 
+
     public static String sendPut(String apiUrl, String requestData) throws Exception {
-        return sendRequestWithRefresh(apiUrl, "PUT", requestData);
+        try {
+            return sendRequestWithRefresh(apiUrl, "PUT", requestData);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("PUT request failed: " + e.getMessage());
+        }
     }
 
     public static String sendDelete(String apiUrl) throws Exception {
-        return sendRequestWithRefresh(apiUrl, "DELETE", null);
+        try {
+            return sendRequestWithRefresh(apiUrl, "DELETE", null);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("DELETE request failed: " + e.getMessage());
+        }
     }
+
 
     // Phương thức làm mới accessToken
     private static boolean refreshAccessToken() throws Exception {

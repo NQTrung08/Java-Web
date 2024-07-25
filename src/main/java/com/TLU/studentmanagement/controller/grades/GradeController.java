@@ -63,18 +63,44 @@ public class GradeController {
         return null;
     }
 
-    public void createGrade(Grade grade) {
+    public String createGrade(Grade grade) {
         try {
             JSONObject jsonGrade = new JSONObject();
             jsonGrade.put("courseId", grade.getCourseId());
             jsonGrade.put("transcriptId", grade.getTranscriptId());
             jsonGrade.put("midScore", grade.getMidScore());
             jsonGrade.put("finalScore", grade.getFinalScore());
-            HttpUtil.sendPost(BASE_URL + "/create", jsonGrade.toString());
+
+            // Gửi yêu cầu POST và nhận phản hồi từ server
+            String response = HttpUtil.sendPost(BASE_URL + "/create", jsonGrade.toString());
+
+            System.out.println(response);
+            // Loại bỏ phần thông báo lỗi trước phần JSON
+            String jsonResponseString = response.replaceFirst("Bad Request: ", "");
+
+            // Chuyển đổi phản hồi thành JSONObject
+            JSONObject jsonResponse = new JSONObject(jsonResponseString);
+
+            // In phản hồi ra log
+            System.out.println(jsonResponse.toString()); // In ra JSON với indent 2
+
+            // Kiểm tra trạng thái phản hồi
+            if (jsonResponse.has("status") && jsonResponse.getString("status").equals("error")) {
+                // Xử lý lỗi từ server
+                String errorMessage = jsonResponse.getString("message");
+                return errorMessage;
+            } else {
+                // Xử lý thành công
+                return "Grade created successfully";
+            }
         } catch (Exception e) {
+            // Xử lý ngoại lệ và hiển thị lỗi nếu cần thiết
             e.printStackTrace();
+            return e.getMessage();
         }
     }
+
+
 
     public int updateGrade(String gradeId, Grade grade) {
         try {
