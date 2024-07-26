@@ -2,6 +2,9 @@ package main.java.com.TLU.studentmanagement.view.pages.Teachers;
 
 import main.java.com.TLU.studentmanagement.controller.teacher.TeacherController;
 import main.java.com.TLU.studentmanagement.model.Teacher;
+import main.java.com.TLU.studentmanagement.session.TeacherSession;
+import main.java.com.TLU.studentmanagement.session.UserSession;
+import main.java.com.TLU.studentmanagement.view.pages.Majors.MajorPanel;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -71,6 +74,15 @@ public class TeachersPanel extends JPanel {
             }
         });
 
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            addTeacherButton.setVisible(false);
+        }
+
         topPanel.add(new JLabel("Tìm kiếm:"));
         topPanel.add(searchField);
         topPanel.add(searchButton);
@@ -116,6 +128,14 @@ public class TeachersPanel extends JPanel {
         teacherTable.getColumnModel().getColumn(1).setMaxWidth(0);
         teacherTable.getColumnModel().getColumn(1).setWidth(0);
 
+
+        // Ẩn cột Hành động nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            teacherTable.removeColumn(teacherTable.getColumn("Thao tác"));
+        } else {
+            teacherTable.getColumn("Thao tác").setCellRenderer(new ButtonRenderer());
+            teacherTable.getColumn("Thao tác").setCellEditor(new ButtonEditor(new JCheckBox()));
+        }
         containerPanel.add(new JScrollPane(teacherTable), BorderLayout.CENTER);
         add(containerPanel, BorderLayout.CENTER);
     }

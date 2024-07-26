@@ -236,13 +236,15 @@ public class MajorPanel extends JPanel {
         if (option == JOptionPane.YES_OPTION) {
             try {
                 MajorController.deleteMajor(major.getId());
-                getAllMajors(); // Refresh the list after deleting major
+                majorTableModel.majors.remove(major); // Xóa chuyên ngành khỏi danh sách trong model
+                majorTableModel.fireTableDataChanged(); // Thông báo cho model rằng dữ liệu đã thay đổi
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Lỗi: " + ex.getMessage());
             }
         }
     }
+
 
     private class MajorTableModel extends AbstractTableModel {
 

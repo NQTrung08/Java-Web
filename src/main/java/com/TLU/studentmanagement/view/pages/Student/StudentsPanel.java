@@ -125,6 +125,16 @@ public class StudentsPanel extends JPanel {
                 }
             }
         });
+        // Check quyền Admin và Teacher
+        boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+        boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
+
+
+        // Ẩn nút "Thêm khóa học" nếu không phải Admin
+        if (!isAdmin && !isTeacherAdmin) {
+            addButton.setVisible(false);
+        }
+
         buttonPanel.add(addButton);
 
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -342,13 +352,22 @@ public class StudentsPanel extends JPanel {
 
         public ActionRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 6, 6));
-            JButton editButton = createButton("Sửa");
-            JButton deleteButton = createButton("Xóa");
-            JButton viewButton = createButton("Xem chi tiết");
 
-            add(editButton);
-            add(deleteButton);
-            add(viewButton);
+            boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+            boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
+
+            if (!isAdmin && !isTeacherAdmin) {
+                JButton viewButton = createButton("Xem chi tiết");
+                add(viewButton);
+            } else {
+                JButton editButton = createButton("Sửa");
+                JButton deleteButton = createButton("Xóa");
+                JButton viewButton = createButton("Xem chi tiết");
+                add(editButton);
+                add(deleteButton);
+                add(viewButton);
+
+            }
         }
 
         private JButton createButton(String text) {
@@ -431,7 +450,7 @@ public class StudentsPanel extends JPanel {
             viewButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (UserSession.getUser() != null && UserSession.getUser().isAdmin()) {
+                    if (UserSession.getUser() != null || TeacherSession.getTeacher() != null) {
                         // Thêm logic để xem chi tiết sinh viên
                         StudentDetail studentDetail = new StudentDetail(currentStudent, teachers, majors);
                         studentDetail.setVisible(true);
@@ -442,9 +461,20 @@ public class StudentsPanel extends JPanel {
                 }
             });
 
-            panel.add(editButton);
-            panel.add(deleteButton);
-            panel.add(viewButton);
+            boolean isAdmin = UserSession.getUser() != null && UserSession.getUser().isAdmin();
+            boolean isTeacherAdmin = TeacherSession.getTeacher() != null && TeacherSession.getTeacher().isAdmin();
+
+            if (!isAdmin && !isTeacherAdmin) {
+                panel.add(viewButton);
+            } else {
+                panel.add(editButton);
+                panel.add(deleteButton);
+                panel.add(viewButton);
+
+            }
+//            panel.add(editButton);
+//            panel.add(deleteButton);
+//            panel.add(viewButton);
         }
 
         private JButton createButton(String text) {
