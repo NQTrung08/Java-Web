@@ -114,7 +114,7 @@ public class MajorPanel extends JPanel {
         addButton.setFont(new Font("Arial", Font.BOLD, 14));
         addButton.setBackground(new Color(88, 86, 214));  // Accent color
         addButton.setForeground(Color.WHITE);
-        addButton.setPreferredSize(new Dimension(150, 40));
+        addButton.setPreferredSize(new Dimension(240, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
