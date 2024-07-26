@@ -59,7 +59,7 @@ public class TranscriptPanel extends JPanel {
         searchField = new JTextField(20);
         searchButton = new JButton("Tìm kiếm");
         reloadButton = new JButton("Tải lại trang");
-        addTranscriptButton = new JButton("Thêm bảng điểm mới");
+        addTranscriptButton = new JButton("Thêm bảng điểm");
         addTranscriptButton.setBackground(new Color(88, 86, 214));
         addTranscriptButton.setForeground(Color.WHITE);
         addTranscriptButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -116,6 +116,14 @@ public class TranscriptPanel extends JPanel {
         transcriptTable.setRowHeight(40);
         transcriptTable.setIntercellSpacing(new Dimension(0, 1));
         transcriptTable.setGridColor(new Color(220, 220, 220));
+
+        // Set center alignment for all columns
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < transcriptTable.getColumnCount(); i++) {
+            transcriptTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
 
         transcriptTable.getColumn("Thao tác").setCellRenderer(new ButtonRenderer());
         transcriptTable.getColumn("Thao tác").setCellEditor(new ButtonEditor(new JCheckBox()));

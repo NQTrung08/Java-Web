@@ -6,6 +6,7 @@ import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -21,8 +22,10 @@ public class MajorPanel extends JPanel {
     private JButton addButton;
     private JTable majorTable;
     private MajorTableModel majorTableModel;
+    private MajorController majorController;
 
     public MajorPanel() {
+        majorController = new MajorController();
         initUI();
         getAllMajors();
     }
@@ -105,13 +108,13 @@ public class MajorPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // Nút Thêm khóa học
-        addButton = new JButton("Thêm khóa học");
+        addButton = new JButton("Thêm chuyên ngành");
         addButton.setFocusPainted(false);
         addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         addButton.setFont(new Font("Arial", Font.BOLD, 14));
         addButton.setBackground(new Color(88, 86, 214));  // Accent color
         addButton.setForeground(Color.WHITE);
-        addButton.setPreferredSize(new Dimension(150, 40));
+        addButton.setPreferredSize(new Dimension(240, 40));
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -137,28 +140,57 @@ public class MajorPanel extends JPanel {
     }
 
     private void showAddMajorForm() {
+        JDialog dialog = new JDialog((Frame) null, "Thêm chuyên ngành", true);
+        dialog.setLayout(new GridLayout(3, 2, 10, 10));
+        dialog.setSize(400, 200);
         JTextField nameField = new JTextField();
         JTextField codeField = new JTextField();
 
-        Object[] message = {
-                "Tên chuyên ngành:", nameField,
-                "Mã chuyên ngành:", codeField
-        };
+        dialog.add(new JLabel("Tên chuyên ngành:"));
+        dialog.add(nameField);
+        dialog.add(new JLabel("Mã chuyên ngành:"));
+        dialog.add(codeField);
 
-        int option = JOptionPane.showConfirmDialog(null, message, "Thêm chuyên ngành", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        nameField.setPreferredSize(new Dimension(200, 40));
+        codeField.setPreferredSize(new Dimension(200, 40));
+        okButton.setPreferredSize(new Dimension(100, 30));
+        cancelButton.setPreferredSize(new Dimension(100, 30));
+
+        okButton.addActionListener(e -> {
             String name = nameField.getText();
             String code = codeField.getText();
 
             try {
-                MajorController.createMajor(name, code);
-                getAllMajors(); // Refresh the list after adding new major
+                JSONObject response = majorController.createMajor(name, code);
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
+                    // Xử lý lỗi từ server
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+                } else if (response.has("message") && response.getString("message").equals("Create success")) {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm chuyên ngành thành công");
+                    getAllMajors();
+                    dialog.dispose(); // Đóng dialog sau khi thêm thành công
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage());
             }
-        }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        dialog.add(okButton);
+        dialog.add(cancelButton);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
     }
+
 
     private void showUpdateMajorForm(Major major) {
         JTextField nameField = new JTextField(major.getName());
@@ -204,13 +236,15 @@ public class MajorPanel extends JPanel {
         if (option == JOptionPane.YES_OPTION) {
             try {
                 MajorController.deleteMajor(major.getId());
-                getAllMajors(); // Refresh the list after deleting major
+                majorTableModel.majors.remove(major); // Xóa chuyên ngành khỏi danh sách trong model
+                majorTableModel.fireTableDataChanged(); // Thông báo cho model rằng dữ liệu đã thay đổi
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Lỗi: " + ex.getMessage());
             }
         }
     }
+
 
     private class MajorTableModel extends AbstractTableModel {
 

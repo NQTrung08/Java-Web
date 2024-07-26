@@ -42,13 +42,16 @@ public class MajorController {
         return major;
     }
 
-    public static void createMajor(String name, String code) throws Exception {
+    public JSONObject createMajor(String name, String code) throws Exception {
         JSONObject jsonInput = new JSONObject();
         jsonInput.put("name", name);
         jsonInput.put("code", code);
 
         String apiUrl = "http://localhost:8080/api/major/create";
-        HttpUtil.sendPost(apiUrl, jsonInput.toString());
+        String response = HttpUtil.sendPost(apiUrl, jsonInput.toString());
+        System.out.println(response);
+        JSONObject jsonResponse = new JSONObject(response);
+        return jsonResponse;
     }
 
     public static void updateMajor(String id, String name, String code) throws Exception {

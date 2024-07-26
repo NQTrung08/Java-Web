@@ -7,6 +7,7 @@ import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.model.Teacher;
 import main.java.com.TLU.studentmanagement.model.User;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -23,12 +24,14 @@ public class AddStudentForm extends JDialog {
     private List<Major> majors;
     private StudentsPanel studentsPanel;
     private CoursePanel coursePanel;
+    private UserController userController;
 
     public AddStudentForm(JFrame parent, List<Teacher> teachers, List<Major> majors, StudentsPanel studentsPanel) {
         super(parent, "Thêm sinh viên", true);
         this.teachers = teachers;
         this.majors = majors;
         this.studentsPanel = studentsPanel;
+        userController = new UserController();
         initUI();
     }
 
@@ -143,11 +146,18 @@ public class AddStudentForm extends JDialog {
                 user.setEmail(email);
                 user.setMajorId(selectedMajor.getId());
 
-                UserController.createUser(user);
-                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm sinh viên thành công.");
-                studentsPanel.getAllStudents();
+                JSONObject response = userController.createUser(user);
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
+                    // Xử lý lỗi từ server
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+                } else {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm sinh viên thành công.");
+                    studentsPanel.getAllStudents();
+                    dispose();
+                }
 //                coursePanel.getAllCourses(); // Refresh courses or students list
-                dispose();
             } catch (Exception ex) {
                 ex.printStackTrace();
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Add student error.");

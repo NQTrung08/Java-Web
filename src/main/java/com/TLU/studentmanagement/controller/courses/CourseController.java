@@ -84,7 +84,7 @@ public class CourseController {
         return course;
     }
 
-    public static void createCourse(String name, String code, int credit, String majorId) throws Exception {
+    public JSONObject createCourse(String name, String code, int credit, String majorId) throws Exception {
         JSONObject jsonInput = new JSONObject();
         jsonInput.put("name", name);
         jsonInput.put("code", code);
@@ -92,7 +92,10 @@ public class CourseController {
         jsonInput.put("majorId", majorId != null ? majorId : ""); // Ensure majorId is never null
 
         String apiUrl = "http://localhost:8080/api/course/add-course";
-        HttpUtil.sendPost(apiUrl, jsonInput.toString());
+        String res = HttpUtil.sendPost(apiUrl, jsonInput.toString());
+        JSONObject resJson = new JSONObject(res);
+
+        return resJson;
     }
 
     public static void updateCourse(String id, String name, String code, int credit, String majorId) throws Exception {

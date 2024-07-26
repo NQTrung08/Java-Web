@@ -152,7 +152,7 @@ public class UserController {
 
 
 
-    public static void createUser(User user) {
+    public JSONObject createUser(User user) throws Exception {
         try {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("fullname", user.getFullName());
@@ -171,15 +171,14 @@ public class UserController {
             String response = HttpUtil.sendPost(BASE_URL + "create-user", jsonObj.toString());
             JSONObject responseJson = new JSONObject(response);
 
+            return responseJson;
+
 //            System.out.println("API response: " + responseJson);
 
 //            JOptionPane.showMessageDialog(null, responseJson.getString("message"));
         } catch (JSONException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi tạo người dùng: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Lỗi khi tạo người dùng: " + e.getMessage());
+            return null;
         }
     }
 

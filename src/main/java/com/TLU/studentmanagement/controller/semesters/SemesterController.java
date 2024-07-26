@@ -9,9 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SemesterController {
+    private static final String BASE_URL = "http://localhost:8080/api/semester";
 
     public static List<Semester> getAllSemesters() throws Exception {
-        String apiUrl = "http://localhost:8080/api/semester/getAll";
+        String apiUrl = BASE_URL + "/getAll";
         String response = HttpUtil.sendGet(apiUrl);
         JSONObject jsonResponse = new JSONObject(response);
         JSONArray semestersArray = jsonResponse.getJSONArray("data");
@@ -29,14 +30,27 @@ public class SemesterController {
         return semesters;
     }
 
-    public static void createSemester(String semester, String group, String year) throws Exception {
-        JSONObject jsonInput = new JSONObject();
-        jsonInput.put("semester", semester);
-        jsonInput.put("group", group);
-        jsonInput.put("year", year);
+    public JSONObject createSemester(String semester, String group, String year) {
+        try {
 
-        String apiUrl = "http://localhost:8080/api/semester/create";
-        HttpUtil.sendPost(apiUrl, jsonInput.toString());
+            JSONObject jsonInput = new JSONObject();
+            jsonInput.put("semester", semester);
+            jsonInput.put("group", group);
+            jsonInput.put("year", year);
+
+            String apiUrl = BASE_URL + "/create";
+            String response = HttpUtil.sendPost(apiUrl, jsonInput.toString());
+            System.out.println(response);
+            // Chuyển đổi phản hồi thành JSONObject
+            JSONObject jsonResponse = new JSONObject(response);
+
+            return jsonResponse;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     public static void updateSemester(String id, String semester, String group, String year) throws Exception {
@@ -45,12 +59,12 @@ public class SemesterController {
         jsonInput.put("group", group);
         jsonInput.put("year", year);
 
-        String apiUrl = "http://localhost:8080/api/semester/update/" + id;
+        String apiUrl = BASE_URL + "/update/" + id;
         HttpUtil.sendPut(apiUrl, jsonInput.toString());
     }
 
     public static void deleteSemester(String id) throws Exception {
-        String apiUrl = "http://localhost:8080/api/semester/delete/" + id;
+        String apiUrl = BASE_URL + "/delete/" + id;
         HttpUtil.sendDelete(apiUrl);
     }
 }

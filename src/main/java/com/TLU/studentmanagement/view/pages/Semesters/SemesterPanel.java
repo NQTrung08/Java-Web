@@ -1,11 +1,13 @@
 package main.java.com.TLU.studentmanagement.view.pages.Semesters;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import main.java.com.TLU.studentmanagement.controller.grades.GradeController;
 import main.java.com.TLU.studentmanagement.controller.semesters.SemesterController;
 import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -19,10 +21,12 @@ import java.util.List;
 public class SemesterPanel extends JPanel {
 
     private JButton addButton;
+    private SemesterController semesterController;
     private JTable semesterTable;
     private SemesterTableModel semesterTableModel;
 
     public SemesterPanel() {
+        semesterController = new SemesterController();
         initUI();
         getAllSemesters();
     }
@@ -93,7 +97,7 @@ public class SemesterPanel extends JPanel {
 
 
 
-        addButton = new JButton("Thêm khóa học");
+        addButton = new JButton("Thêm học kỳ");
         addButton.setFocusPainted(false);
         addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         addButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -148,8 +152,16 @@ public class SemesterPanel extends JPanel {
             String year = yearField.getText();
 
             try {
-                SemesterController.createSemester(semester, group, year);
-                getAllSemesters();
+                JSONObject response = semesterController.createSemester(semester, group, year);
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
+                    // Xử lý lỗi từ server
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+                } else {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm học kỳ thành công");
+                    getAllSemesters();
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());
