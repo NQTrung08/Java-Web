@@ -75,11 +75,9 @@ public class GradeController {
             String response = HttpUtil.sendPost(BASE_URL + "/create", jsonGrade.toString());
 
             System.out.println(response);
-            // Loại bỏ phần thông báo lỗi trước phần JSON
-            String jsonResponseString = response.replaceFirst("Bad Request: ", "");
 
             // Chuyển đổi phản hồi thành JSONObject
-            JSONObject jsonResponse = new JSONObject(jsonResponseString);
+            JSONObject jsonResponse = new JSONObject(response);
 
             // In phản hồi ra log
             System.out.println(jsonResponse.toString()); // In ra JSON với indent 2

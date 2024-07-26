@@ -45,15 +45,15 @@ public class HttpUtil {
             String errorResponse = readErrorStream(conn);
             switch (responseCode) {
                 case HttpURLConnection.HTTP_UNAUTHORIZED:
-                    throw new RuntimeException("Unauthorized: " + errorResponse);
+                    throw new RuntimeException(errorResponse);
                 case HttpURLConnection.HTTP_BAD_REQUEST:
-                    throw new RuntimeException("Bad Request: " + errorResponse);
+                    throw new RuntimeException(errorResponse);
                 case HttpURLConnection.HTTP_FORBIDDEN:
-                    throw new RuntimeException("Forbidden: " + errorResponse);
+                    throw new RuntimeException(errorResponse);
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    throw new RuntimeException("Not Found: " + errorResponse);
+                    throw new RuntimeException(errorResponse);
                 case HttpURLConnection.HTTP_INTERNAL_ERROR:
-                    throw new RuntimeException("Internal Server Error: " + errorResponse);
+                    throw new RuntimeException(errorResponse);
                 default:
                     throw new RuntimeException("Failed : HTTP error code : " + responseCode + " - " + conn.getResponseMessage() + " - " + errorResponse);
             }

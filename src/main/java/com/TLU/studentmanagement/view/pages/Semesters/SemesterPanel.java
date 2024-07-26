@@ -7,6 +7,7 @@ import main.java.com.TLU.studentmanagement.model.Semester;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -25,6 +26,7 @@ public class SemesterPanel extends JPanel {
     private SemesterTableModel semesterTableModel;
 
     public SemesterPanel() {
+        semesterController = new SemesterController();
         initUI();
         getAllSemesters();
     }
@@ -150,12 +152,16 @@ public class SemesterPanel extends JPanel {
             String year = yearField.getText();
 
             try {
-                String response = semesterController.createSemester(semester, group, year);
-                if (response.equals("Semester already exists")) {
+                JSONObject response = semesterController.createSemester(semester, group, year);
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
                     // Xử lý lỗi từ server
-                    Notifications.getInstance().show(Notifications.Type.ERROR, "Kỳ học đã tồn tại");
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+                } else {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm học kỳ thành công");
+                    getAllSemesters();
                 }
-                getAllSemesters();
             } catch (Exception ex) {
                 ex.printStackTrace();
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Error: " + ex.getMessage());

@@ -30,7 +30,7 @@ public class SemesterController {
         return semesters;
     }
 
-    public String createSemester(String semester, String group, String year) {
+    public JSONObject createSemester(String semester, String group, String year) {
         try {
 
             JSONObject jsonInput = new JSONObject();
@@ -41,23 +41,14 @@ public class SemesterController {
             String apiUrl = BASE_URL + "/create";
             String response = HttpUtil.sendPost(apiUrl, jsonInput.toString());
             System.out.println(response);
-            String jsonResponseString = response.replaceFirst("Bad Request: ", "");
             // Chuyển đổi phản hồi thành JSONObject
-            JSONObject jsonResponse = new JSONObject(jsonResponseString);
+            JSONObject jsonResponse = new JSONObject(response);
 
-            // Kiểm tra trạng thái phản hồi
-            if (jsonResponse.has("status") && jsonResponse.getString("status").equals("error")) {
-                // Xử lý lỗi từ server
-                String errorMessage = jsonResponse.getString("message");
-                return errorMessage;
-            } else {
-                // Xử lý thành công
-                return "Create success";
-            }
+            return jsonResponse;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return e.getMessage();
+            return null;
         }
 
     }

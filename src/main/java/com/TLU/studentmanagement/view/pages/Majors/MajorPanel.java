@@ -6,6 +6,7 @@ import main.java.com.TLU.studentmanagement.model.Major;
 import main.java.com.TLU.studentmanagement.session.TeacherSession;
 import main.java.com.TLU.studentmanagement.session.UserSession;
 import main.java.com.TLU.studentmanagement.view.pages.Courses.CoursePanel;
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -21,8 +22,10 @@ public class MajorPanel extends JPanel {
     private JButton addButton;
     private JTable majorTable;
     private MajorTableModel majorTableModel;
+    private MajorController majorController;
 
     public MajorPanel() {
+        majorController = new MajorController();
         initUI();
         getAllMajors();
     }
@@ -151,8 +154,18 @@ public class MajorPanel extends JPanel {
             String code = codeField.getText();
 
             try {
-                MajorController.createMajor(name, code);
-                getAllMajors(); // Refresh the list after adding new major
+                JSONObject response = majorController.createMajor(name, code);
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
+                    // Xử lý lỗi từ server
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+
+                } else if (response.has("message") && response.getString("message").equals("Create success")) {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm chuyên ngành thành công");
+                    getAllMajors();
+
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
