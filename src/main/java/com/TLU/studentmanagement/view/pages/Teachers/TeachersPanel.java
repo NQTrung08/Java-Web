@@ -43,7 +43,7 @@ public class TeachersPanel extends JPanel {
         searchField = new JTextField(20);
         searchButton = new JButton("Tìm kiếm");
         reloadButton = new JButton("Tải lại trang");
-        addTeacherButton = new JButton("Thêm giáo viên mới");
+        addTeacherButton = new JButton("Thêm giáo viên");
         addTeacherButton.setBackground(new Color(88, 86, 214));
         addTeacherButton.setForeground(Color.WHITE);
         addTeacherButton.setFont(new Font("Arial", Font.BOLD, 14));

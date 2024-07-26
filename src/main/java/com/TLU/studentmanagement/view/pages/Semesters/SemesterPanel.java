@@ -97,7 +97,7 @@ public class SemesterPanel extends JPanel {
 
 
 
-        addButton = new JButton("Thêm khóa học");
+        addButton = new JButton("Thêm học kỳ");
         addButton.setFocusPainted(false);
         addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         addButton.setFont(new Font("Arial", Font.BOLD, 14));

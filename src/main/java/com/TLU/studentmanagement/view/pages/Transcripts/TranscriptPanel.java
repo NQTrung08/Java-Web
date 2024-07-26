@@ -59,7 +59,7 @@ public class TranscriptPanel extends JPanel {
         searchField = new JTextField(20);
         searchButton = new JButton("Tìm kiếm");
         reloadButton = new JButton("Tải lại trang");
-        addTranscriptButton = new JButton("Thêm bảng điểm mới");
+        addTranscriptButton = new JButton("Thêm bảng điểm");
         addTranscriptButton.setBackground(new Color(88, 86, 214));
         addTranscriptButton.setForeground(Color.WHITE);
         addTranscriptButton.setFont(new Font("Arial", Font.BOLD, 14));

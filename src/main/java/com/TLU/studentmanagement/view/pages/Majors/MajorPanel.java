@@ -108,7 +108,7 @@ public class MajorPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // Nút Thêm khóa học
-        addButton = new JButton("Thêm khóa học");
+        addButton = new JButton("Thêm chuyên ngành");
         addButton.setFocusPainted(false);
         addButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         addButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -140,16 +140,26 @@ public class MajorPanel extends JPanel {
     }
 
     private void showAddMajorForm() {
+        JDialog dialog = new JDialog((Frame) null, "Thêm chuyên ngành", true);
+        dialog.setLayout(new GridLayout(3, 2, 10, 10));
+        dialog.setSize(400, 200);
         JTextField nameField = new JTextField();
         JTextField codeField = new JTextField();
 
-        Object[] message = {
-                "Tên chuyên ngành:", nameField,
-                "Mã chuyên ngành:", codeField
-        };
+        dialog.add(new JLabel("Tên chuyên ngành:"));
+        dialog.add(nameField);
+        dialog.add(new JLabel("Mã chuyên ngành:"));
+        dialog.add(codeField);
 
-        int option = JOptionPane.showConfirmDialog(null, message, "Thêm chuyên ngành", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        nameField.setPreferredSize(new Dimension(200, 40));
+        codeField.setPreferredSize(new Dimension(200, 40));
+        okButton.setPreferredSize(new Dimension(100, 30));
+        cancelButton.setPreferredSize(new Dimension(100, 30));
+
+        okButton.addActionListener(e -> {
             String name = nameField.getText();
             String code = codeField.getText();
 
@@ -159,19 +169,28 @@ public class MajorPanel extends JPanel {
                     // Xử lý lỗi từ server
                     String errorMessage = response.getString("message");
                     Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
-
                 } else if (response.has("message") && response.getString("message").equals("Create success")) {
                     // Xử lý thành công
                     Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm chuyên ngành thành công");
                     getAllMajors();
-
+                    dialog.dispose(); // Đóng dialog sau khi thêm thành công
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage());
             }
-        }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        dialog.add(okButton);
+        dialog.add(cancelButton);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
     }
+
 
     private void showUpdateMajorForm(Major major) {
         JTextField nameField = new JTextField(major.getName());

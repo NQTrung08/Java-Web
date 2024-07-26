@@ -3,6 +3,7 @@ package main.java.com.TLU.studentmanagement.view.pages.Courses;
 import main.java.com.TLU.studentmanagement.controller.courses.CourseController;
 import main.java.com.TLU.studentmanagement.controller.majors.MajorController;
 import main.java.com.TLU.studentmanagement.model.Major;
+import org.json.JSONObject;
 import raven.toast.Notifications;
 
 import javax.swing.*;
@@ -19,11 +20,13 @@ public class AddCourseForm extends JDialog {
     private JComboBox<String> majorComboBox;
     private List<Major> majors;
     private CoursePanel coursePanel;
+    private CourseController courseController;
 
     public AddCourseForm(JFrame parent, List<Major> majors, CoursePanel coursePanel) {
         super(parent, "Thêm khóa học", true);
         this.majors = majors;
         this.coursePanel = coursePanel;
+        courseController = new CourseController();
         initUI();
     }
 
@@ -92,10 +95,18 @@ public class AddCourseForm extends JDialog {
 
         if (selectedMajor != null) {
             try {
-                CourseController.createCourse(name, code, credit, selectedMajor.getId());
-                Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm khóa học thành công.");
-                coursePanel.getAllCourses();
-                dispose();
+                JSONObject response = courseController.createCourse(name, code, credit, selectedMajor.getId());
+                if (response != null && response.has("status") && response.getString("status").equals("error")) {
+                    // Xử lý lỗi từ server
+                    String errorMessage = response.getString("message");
+                    Notifications.getInstance().show(Notifications.Type.ERROR, errorMessage);
+                } else if (response.has("message") && response.getString("message").equals("Create course success")) {
+                    // Xử lý thành công
+                    Notifications.getInstance().show(Notifications.Type.SUCCESS, "Thêm khóa học thành công.");
+                    coursePanel.getAllCourses();
+                    dispose();
+                }
+
             } catch (Exception ex) {
                 ex.printStackTrace();
                 Notifications.getInstance().show(Notifications.Type.ERROR, "Add course error.");
