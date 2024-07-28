@@ -174,8 +174,11 @@ public class TeachersPanel extends JPanel {
     }
 
     private void openAddTeacherForm() {
-        // Implement this method to open the form for adding a new teacher
+        AddTeacherForm addTeacherForm = new AddTeacherForm((Frame) SwingUtilities.getWindowAncestor(this));
+        addTeacherForm.setVisible(true);
+        loadTeachers(); // Refresh danh sách giáo viên sau khi thêm
     }
+
 
     private void viewTeacher(int row) {
         String teacherId = (String) tableModel.getValueAt(row, 1);
@@ -212,9 +215,10 @@ public class TeachersPanel extends JPanel {
             return;
         }
 
-        // Implement the EditTeacherForm and open it here
-        // new EditTeacherForm((Frame) SwingUtilities.getWindowAncestor(this), teacher, this).setVisible(true);
+        EditTeacherForm editTeacherForm = new EditTeacherForm((Frame) SwingUtilities.getWindowAncestor(this), teacher, this);
+        editTeacherForm.setVisible(true);
     }
+
 
     private void deleteTeacher(int row) {
         String teacherId = (String) tableModel.getValueAt(row, 1);
